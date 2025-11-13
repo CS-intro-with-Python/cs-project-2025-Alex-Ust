@@ -24,16 +24,18 @@ jobs:
           # Даем контейнеру пару секунд на старт
           sleep 5
 
-      - name: Test Flask response
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
         run: |
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/)
-          echo "Server returned HTTP code: $RESPONSE"
-          if [ "$RESPONSE" -eq 200 ]; then
-            echo "::notice ::✅ Server responded correctly with 200"
-          else
-            echo "::error ::❌ Server responded with $RESPONSE"
-            exit 1
-          fi
+          pip install requests
+
+      - name: Test Flask endpoints
+        run: |
+          python3 client.py
 
 
           
