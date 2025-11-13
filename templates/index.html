@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FocusFlow — Notes, Reminders & Tasks</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="badge">FocusFlow</p>
+          <h1>Plan smarter with beautiful notes, reminders, and tasks.</h1>
+          <p class="subtitle">
+            Create rich notes, schedule reminders, and manage calendar tasks from a single workspace.
+            Tag and filter anything in seconds.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button class="btn primary" id="open-create-panel">
+            <span class="icon">＋</span>
+            <span class="label">New item</span>
+          </button>
+          <button class="btn ghost" id="toggle-theme">
+            <span class="icon">☀</span>
+            <span class="label">Switch theme</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel panel--narrow">
+          <form class="card form" id="item-form">
+            <h2>Create item</h2>
+
+            <label class="field">
+              <span class="field__label">Type</span>
+              <div class="segmented">
+                <input type="radio" name="type" id="type-note" value="note" checked />
+                <label for="type-note">Note</label>
+                <input type="radio" name="type" id="type-reminder" value="reminder" />
+                <label for="type-reminder">Reminder</label>
+                <input type="radio" name="type" id="type-task" value="task" />
+                <label for="type-task">Task</label>
+              </div>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Title</span>
+              <input type="text" name="title" required placeholder="Add a short title" />
+            </label>
+
+            <label class="field" id="details-field">
+              <span class="field__label">Details</span>
+              <textarea name="details" rows="4" placeholder="Describe your idea"></textarea>
+            </label>
+
+            <label class="field" id="datetime-field">
+              <span class="field__label">When</span>
+              <input type="datetime-local" name="datetime" />
+              <p class="field__hint">Only used for reminders and tasks.</p>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Tags</span>
+              <input type="text" name="tags" placeholder="Comma separated, e.g. work, planning" />
+            </label>
+
+            <div class="form__actions">
+              <button type="submit" class="btn primary">Save item</button>
+              <button type="reset" class="btn ghost">Clear</button>
+            </div>
+          </form>
+
+          <section class="card filters">
+            <h2>Filters</h2>
+            <div class="filters__group">
+              <label class="field">
+                <span class="field__label">Search</span>
+                <input type="search" id="search-input" placeholder="Search by title or details" />
+              </label>
+            </div>
+            <div class="filters__group">
+              <span class="field__label">Show</span>
+              <div class="chip-group" id="type-filters">
+                <button class="chip selected" data-type="all">All</button>
+                <button class="chip" data-type="note">Notes</button>
+                <button class="chip" data-type="reminder">Reminders</button>
+                <button class="chip" data-type="task">Tasks</button>
+              </div>
+            </div>
+            <div class="filters__group">
+              <span class="field__label">Tags</span>
+              <div class="chip-group" id="tag-filters">
+                <p class="chips-placeholder">Tags appear as you add items.</p>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="panel">
+          <section class="board" aria-live="polite" id="board">
+            <div class="board__column" data-column="note">
+              <header class="board__header">
+                <h2>Notes</h2>
+                <span class="badge badge--subtle" id="count-note">0</span>
+              </header>
+              <div class="board__list" id="list-note"></div>
+            </div>
+            <div class="board__column" data-column="reminder">
+              <header class="board__header">
+                <h2>Reminders</h2>
+                <span class="badge badge--subtle" id="count-reminder">0</span>
+              </header>
+              <div class="board__list" id="list-reminder"></div>
+            </div>
+            <div class="board__column" data-column="task">
+              <header class="board__header">
+                <h2>Tasks</h2>
+                <span class="badge badge--subtle" id="count-task">0</span>
+              </header>
+              <div class="board__list" id="list-task"></div>
+            </div>
+          </section>
+        </section>
+      </main>
+
+      <dialog id="edit-dialog">
+        <form method="dialog" class="card form" id="edit-form">
+          <h2>Edit item</h2>
+          <input type="hidden" name="id" />
+
+          <label class="field">
+            <span class="field__label">Title</span>
+            <input type="text" name="title" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Details</span>
+            <textarea name="details" rows="4"></textarea>
+          </label>
+
+          <label class="field">
+            <span class="field__label">When</span>
+            <input type="datetime-local" name="datetime" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Tags</span>
+            <input type="text" name="tags" />
+          </label>
+
+          <div class="form__actions">
+            <button value="cancel" class="btn ghost">Cancel</button>
+            <button id="edit-save" class="btn primary">Update item</button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+
+    <template id="chip-template">
+      <span class="tag"></span>
+    </template>
+
+    <template id="item-template">
+      <article class="item" data-id="">
+        <div class="item__header">
+          <div class="item__type">
+            <span class="icon"></span>
+            <span class="item__type-label"></span>
+          </div>
+          <button class="icon-button" data-action="edit" aria-label="Edit item">
+            ✎
+          </button>
+        </div>
+        <h3 class="item__title"></h3>
+        <p class="item__details"></p>
+        <div class="item__meta">
+          <time class="item__time"></time>
+          <div class="item__tags"></div>
+        </div>
+        <div class="item__actions">
+          <button class="btn small" data-action="toggle-complete">Mark done</button>
+          <button class="btn ghost small" data-action="delete">Delete</button>
+        </div>
+      </article>
+    </template>
+
+    <script type="module" src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
+

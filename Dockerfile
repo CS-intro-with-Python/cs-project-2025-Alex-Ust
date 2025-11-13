@@ -8,7 +8,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./ ./
 
-
+ENV FLASK_APP=server.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=8080
 ENV FLASK_RUN_RELOAD=true
+
 
 CMD ["flask", "--app", "server", "run", "-h",  "0.0.0.0", "-p", "8080"]
