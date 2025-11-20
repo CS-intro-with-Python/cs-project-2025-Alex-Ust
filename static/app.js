@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'focusflow-items-v1';
+const API_BASE_URL = '/api';
 
 const state = {
   items: [],
@@ -7,6 +7,8 @@ const state = {
     search: '',
     tag: 'all',
   },
+  loading: false,
+  error: null,
 };
 
 const selectors = {
@@ -43,11 +45,10 @@ const typeConfig = {
 
 init();
 
-function init() {
+async function init() {
   restoreTheme();
-  loadItems();
-  render();
   attachListeners();
+  await loadItems();
 }
 
 function restoreTheme() {
@@ -129,9 +130,6 @@ function applyTypeUI(type) {
   } else {
     datetimeField.style.display = 'flex';
     detailsField.querySelector('textarea').placeholder = 'Add context or next steps.';
-  } else {
-    datetimeField.style.display = 'flex';
-    detailsField.querySelector('textarea').placeholder = 'Add context or next steps.';
   }
 
   if (type === 'note') {
@@ -139,7 +137,7 @@ function applyTypeUI(type) {
   }
 }
 
-function handleCreate(event) {
+async function handleCreate(event) {
   event.preventDefault();
   const formData = new FormData(selectors.form);
   const type = formData.get('type');
@@ -153,25 +151,39 @@ function handleCreate(event) {
     return;
   }
 
-  const item = {
-    id: crypto.randomUUID(),
+  const itemData = {
     type,
     title,
     details,
     tags,
-    datetime: datetime || null,
+    datetime: datetime ? new Date(datetime).toISOString() : null,
     completed: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
   };
 
-  state.items.push(item);
-  persistItems();
-  selectors.form.reset();
-  render();
+  try {
+    const response = await fetch(`${API_BASE_URL}/items`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(itemData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to create item: ${response.statusText}`);
+    }
+
+    const createdItem = await response.json();
+    await loadItems(); // Reload all items from server
+    selectors.form.reset();
+  } catch (error) {
+    console.error('Failed to create item', error);
+    alert(`Failed to create item: ${error.message}`);
+  }
 }
 
-function handleEditSubmit(event) {
+async function handleEditSubmit(event) {
   event.preventDefault();
   const formData = new FormData(selectors.editForm);
   const id = formData.get('id');
@@ -191,14 +203,33 @@ function handleEditSubmit(event) {
     return;
   }
 
-  item.title = title;
-  item.details = details;
-  item.datetime = datetime || null;
-  item.tags = tags;
-  item.updatedAt = new Date().toISOString();
-  persistItems();
-  selectors.editDialog.close();
-  render();
+  const updateData = {
+    title,
+    details,
+    tags,
+    datetime: datetime ? new Date(datetime).toISOString() : null,
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/items/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to update item: ${response.statusText}`);
+    }
+
+    await loadItems(); // Reload all items from server
+    selectors.editDialog.close();
+  } catch (error) {
+    console.error('Failed to update item', error);
+    alert(`Failed to update item: ${error.message}`);
+  }
 }
 
 function parseTags(value) {
@@ -211,18 +242,24 @@ function parseTags(value) {
     : [];
 }
 
-function loadItems() {
+async function loadItems() {
+  state.loading = true;
+  state.error = null;
   try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const response = await fetch(`${API_BASE_URL}/items`);
+    if (!response.ok) {
+      throw new Error(`Failed to load items: ${response.statusText}`);
+    }
+    const data = await response.json();
     state.items = Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Failed to load saved items', error);
+    console.error('Failed to load items from server', error);
+    state.error = error.message;
     state.items = [];
+  } finally {
+    state.loading = false;
+    render();
   }
-}
-
-function persistItems() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
 }
 
 function render() {
@@ -246,6 +283,13 @@ function updateCounts() {
 }
 
 function renderLists() {
+  if (state.loading) {
+    Object.values(selectors.lists).forEach((container) => {
+      container.innerHTML = '<div class="empty-state">Loading...</div>';
+    });
+    return;
+  }
+
   Object.entries(selectors.lists).forEach(([type, container]) => {
     container.innerHTML = '';
     const filtered = getFilteredItems().filter((item) => item.type === type);
@@ -256,7 +300,11 @@ function renderLists() {
     }
 
     filtered
-      .sort((a, b) => new Date(a.datetime || a.createdAt) - new Date(b.datetime || b.createdAt))
+      .sort((a, b) => {
+        const dateA = a.datetime ? new Date(a.datetime) : new Date(a.createdAt || 0);
+        const dateB = b.datetime ? new Date(b.datetime) : new Date(b.createdAt || 0);
+        return dateA - dateB;
+      })
       .forEach((item) => {
         container.append(renderItem(item));
       });
@@ -298,8 +346,10 @@ function renderItem(item) {
   const timeElement = node.querySelector('.item__time');
   if (item.datetime) {
     timeElement.textContent = formatDate(item.datetime);
-  } else {
+  } else if (item.createdAt) {
     timeElement.textContent = `Added ${formatRelative(item.createdAt)}`;
+  } else {
+    timeElement.textContent = 'No date';
   }
 
   const tagContainer = node.querySelector('.item__tags');
@@ -375,22 +425,49 @@ function createEmptyState() {
   return placeholder;
 }
 
-function toggleComplete(id) {
+async function toggleComplete(id) {
   const item = state.items.find((entry) => entry.id === id);
   if (!item) return;
-  item.completed = !item.completed;
-  item.updatedAt = new Date().toISOString();
-  persistItems();
-  render();
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/items/${id}/toggle-complete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to toggle complete: ${response.statusText}`);
+    }
+
+    await loadItems(); // Reload all items from server
+  } catch (error) {
+    console.error('Failed to toggle complete', error);
+    alert(`Failed to toggle complete: ${error.message}`);
+  }
 }
 
-function deleteItem(id) {
+async function deleteItem(id) {
   const confirmed = confirm('Delete this item? This cannot be undone.');
   if (!confirmed) return;
 
-  state.items = state.items.filter((entry) => entry.id !== id);
-  persistItems();
-  render();
+  try {
+    const response = await fetch(`${API_BASE_URL}/items/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to delete item: ${response.statusText}`);
+    }
+
+    await loadItems(); // Reload all items from server
+  } catch (error) {
+    console.error('Failed to delete item', error);
+    alert(`Failed to delete item: ${error.message}`);
+  }
 }
 
 function openEditDialog(item) {
@@ -400,8 +477,23 @@ function openEditDialog(item) {
   selectors.editForm.elements.id.value = item.id;
   selectors.editForm.elements.title.value = item.title;
   selectors.editForm.elements.details.value = item.details || '';
-  selectors.editForm.elements.datetime.value = item.datetime || '';
-  selectors.editForm.elements.tags.value = item.tags.join(', ');
+  
+  // Convert ISO datetime to datetime-local format (YYYY-MM-DDTHH:mm)
+  let datetimeValue = '';
+  if (item.datetime) {
+    const date = new Date(item.datetime);
+    if (!isNaN(date.getTime())) {
+      // Format as YYYY-MM-DDTHH:mm for datetime-local input
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      datetimeValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+  }
+  selectors.editForm.elements.datetime.value = datetimeValue;
+  selectors.editForm.elements.tags.value = (item.tags || []).join(', ');
 }
 
 function formatDate(value) {
