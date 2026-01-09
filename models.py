@@ -66,11 +66,10 @@ class Item:
 @dataclass
 class Tag:
   name: str
-  color: Optional[str] = None
   created_at: datetime = field(default_factory=datetime.now)
 
   def to_dict(self) -> dict:
-    return {"name": self.name, "color": self.color, "createdAt": self.created_at.isoformat()}
+    return {"name": self.name, "createdAt": self.created_at.isoformat()}
 
 
 @dataclass
