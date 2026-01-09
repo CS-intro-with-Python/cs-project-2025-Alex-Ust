@@ -1,199 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>U-Note — Notes, Reminders & Tasks</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <header class="hero">
-        <div>
-          <p class="badge">U-Note</p>
-          <h1>Plan smarter with beautiful notes, reminders, and tasks.</h1>
-          <p class="subtitle">
-            Create rich notes, schedule reminders, and manage calendar tasks from a single workspace.
-            Tag and filter anything in seconds.
-          </p>
-        </div>
-        <div class="hero-actions">
-          <button class="btn primary" id="open-create-panel">
-            <span class="icon">＋</span>
-            <span class="label">New item</span>
-          </button>
-          <button class="btn ghost" id="toggle-theme">
-            <span class="icon">☀</span>
-            <span class="label">Switch theme</span>
-          </button>
-        </div>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>U-Note</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body {% if request.args.get('theme') == 'dark' %}data-theme="dark"{% endif %}>
+  <header class="hero">
+    <div>
+      <h1>U-Note</h1>
+      <p class="subtitle">My reminders and tasks </p>
+    </div>
+    <div class="hero-actions">
+      <span class="badge badge--subtle">Reminders: {{ counts.reminder }}</span>
+      <span class="badge badge--subtle">Tasks: {{ counts.task }}</span>
+    </div>
+  </header>
 
-      <main class="layout">
-        <section class="panel panel--narrow">
-          <form class="card form" id="item-form">
-            <h2>Create item</h2>
+  <main class="layout">
+    <section class="panel panel--narrow">
+      <div class="card">
+        <h2>{% if edit_item %}Edit{% else %}New{% endif %}</h2>
+        <form class="form" method="POST" action="{% if edit_item %}{{ url_for('update_item_form', item_id=edit_item.id) }}{% else %}{{ url_for('create_item_form') }}{% endif %}">
+          {% if edit_item %}<input type="hidden" name="id" value="{{ edit_item.id }}" />{% endif %}
 
-            <label class="field">
-              <span class="field__label">Type</span>
-              <div class="segmented">
-                <input type="radio" name="type" id="type-note" value="note" checked />
-                <label for="type-note">Note</label>
-                <input type="radio" name="type" id="type-reminder" value="reminder" />
-                <label for="type-reminder">Reminder</label>
-                <input type="radio" name="type" id="type-task" value="task" />
-                <label for="type-task">Task</label>
-              </div>
-            </label>
+          <div class="segmented">
+            <input type="radio" name="type" id="type-reminder" value="reminder" {% if not edit_item or edit_item.type.value == 'reminder' %}checked{% endif %} />
+            <label for="type-reminder">Reminder</label>
+            <input type="radio" name="type" id="type-task" value="task" {% if edit_item and edit_item.type.value == 'task' %}checked{% endif %} />
+            <label for="type-task">Task</label>
+          </div>
 
-            <label class="field">
-              <span class="field__label">Title</span>
-              <input type="text" name="title" required placeholder="Add a short title" />
-            </label>
+          <input type="text" name="title" placeholder="Title" required value="{% if edit_item %}{{ edit_item.title }}{% endif %}" />
+          <textarea name="details" rows="3" placeholder="Details">{% if edit_item %}{{ edit_item.details }}{% endif %}</textarea>
 
-            <label class="field" id="details-field">
-              <span class="field__label">Details</span>
-              <textarea name="details" rows="4" placeholder="Describe your idea"></textarea>
-            </label>
+          <input type="text" name="telegramChatId" placeholder="Telegram ID" value="{% if edit_item %}{{ edit_item.telegram_chat_id }}{% endif %}" />
 
-            <label class="field" id="datetime-field">
-              <span class="field__label">When</span>
-              <input type="datetime-local" name="datetime" />
-              <p class="field__hint">Only used for reminders and tasks.</p>
-            </label>
+          <p class="field__label">Remind at</p>
+          <input id="datetime-field" {% if edit_item and edit_item.type.value == 'task' %}hidden{% endif %} type="datetime-local" name="datetime" value="{% if edit_item and edit_item.type.value == 'reminder' and edit_item.scheduled_at %}{{ edit_item.scheduled_at.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
+          <input id="deadline-field" {% if not edit_item or edit_item.type.value == 'reminder' %}hidden{% endif %} type="datetime-local" name="deadline" value="{% if edit_item and edit_item.type.value == 'task' and edit_item.deadline %}{{ edit_item.deadline.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
 
-            <label class="field">
-              <span class="field__label">Tags</span>
-              <input type="text" name="tags" placeholder="Comma separated, e.g. work, planning" />
-            </label>
-
-            <div class="form__actions">
-              <button type="submit" class="btn primary">Save item</button>
-              <button type="reset" class="btn ghost">Clear</button>
-            </div>
-          </form>
-
-          <section class="card filters">
-            <h2>Filters</h2>
-            <div class="filters__group">
-              <label class="field">
-                <span class="field__label">Search</span>
-                <input type="search" id="search-input" placeholder="Search by title or details" />
-              </label>
-            </div>
-            <div class="filters__group">
-              <span class="field__label">Show</span>
-              <div class="chip-group" id="type-filters">
-                <button class="chip selected" data-type="all">All</button>
-                <button class="chip" data-type="note">Notes</button>
-                <button class="chip" data-type="reminder">Reminders</button>
-                <button class="chip" data-type="task">Tasks</button>
-              </div>
-            </div>
-            <div class="filters__group">
-              <span class="field__label">Tags</span>
-              <div class="chip-group" id="tag-filters">
-                <p class="chips-placeholder">Tags appear as you add items.</p>
-              </div>
-            </div>
-          </section>
-        </section>
-
-        <section class="panel">
-          <section class="board" aria-live="polite" id="board">
-            <div class="board__column" data-column="note">
-              <header class="board__header">
-                <h2>Notes</h2>
-                <span class="badge badge--subtle" id="count-note">0</span>
-              </header>
-              <div class="board__list" id="list-note"></div>
-            </div>
-            <div class="board__column" data-column="reminder">
-              <header class="board__header">
-                <h2>Reminders</h2>
-                <span class="badge badge--subtle" id="count-reminder">0</span>
-              </header>
-              <div class="board__list" id="list-reminder"></div>
-            </div>
-            <div class="board__column" data-column="task">
-              <header class="board__header">
-                <h2>Tasks</h2>
-                <span class="badge badge--subtle" id="count-task">0</span>
-              </header>
-              <div class="board__list" id="list-task"></div>
-            </div>
-          </section>
-        </section>
-      </main>
-
-      <dialog id="edit-dialog">
-        <form method="dialog" class="card form" id="edit-form">
-          <h2>Edit item</h2>
-          <input type="hidden" name="id" />
-
-          <label class="field">
-            <span class="field__label">Title</span>
-            <input type="text" name="title" required />
-          </label>
-
-          <label class="field">
-            <span class="field__label">Details</span>
-            <textarea name="details" rows="4"></textarea>
-          </label>
-
-          <label class="field">
-            <span class="field__label">When</span>
-            <input type="datetime-local" name="datetime" />
-          </label>
-
-          <label class="field">
-            <span class="field__label">Tags</span>
-            <input type="text" name="tags" />
-          </label>
+          <input type="text" name="tags" placeholder="add any tags" value="{% if edit_item %}{{ edit_item.tags | join(', ') }}{% endif %}" />
 
           <div class="form__actions">
-            <button value="cancel" class="btn ghost">Cancel</button>
-            <button id="edit-save" class="btn primary">Update item</button>
+            <button type="submit" class="btn primary">{% if edit_item %}Update{% else %}Save{% endif %}</button>
+            {% if edit_item %}
+              <a class="btn ghost" href="{{ url_for('hello', type=filter_type, tag=filter_tag, search=search_query) }}">Cancel</a>
+            {% else %}
+              <button type="reset" class="btn ghost">Clear</button>
+            {% endif %}
           </div>
         </form>
-      </dialog>
-    </div>
+      </div>
 
-    <template id="chip-template">
-      <span class="tag"></span>
-    </template>
-
-    <template id="item-template">
-      <article class="item" data-id="">
-        <div class="item__header">
-          <div class="item__type">
-            <span class="icon"></span>
-            <span class="item__type-label"></span>
+      <div class="card">
+        <h2>Filter</h2>
+        <form class="form" method="GET" action="{{ url_for('hello') }}">
+          <input type="search" name="search" placeholder="Search" value="{{ search_query }}" />
+          <div class="chip-group">
+            <a class="chip {% if filter_type == 'all' %}selected{% endif %}" href="{{ url_for('hello', type='all', tag=filter_tag, search=search_query) }}">All</a>
+            <a class="chip {% if filter_type == 'reminder' %}selected{% endif %}" href="{{ url_for('hello', type='reminder', tag=filter_tag, search=search_query) }}">Reminders</a>
+            <a class="chip {% if filter_type == 'task' %}selected{% endif %}" href="{{ url_for('hello', type='task', tag=filter_tag, search=search_query) }}">Tasks</a>
           </div>
-          <button class="icon-button" data-action="edit" aria-label="Edit item">
-            ✎
-          </button>
-        </div>
-        <h3 class="item__title"></h3>
-        <p class="item__details"></p>
-        <div class="item__meta">
-          <time class="item__time"></time>
-          <div class="item__tags"></div>
-        </div>
-        <div class="item__actions">
-          <button class="btn small" data-action="toggle-complete">Mark done</button>
-          <button class="btn ghost small" data-action="delete">Delete</button>
-        </div>
-      </article>
-    </template>
+          {% if all_tags %}
+            <div class="chip-group">
+              <a class="chip {% if filter_tag == 'all' %}selected{% endif %}" href="{{ url_for('hello', type=filter_type, tag='all', search=search_query) }}">All tags</a>
+              {% for tag in all_tags %}
+                <a class="chip {% if filter_tag == tag %}selected{% endif %}" href="{{ url_for('hello', type=filter_type, tag=tag, search=search_query) }}">#{{ tag }}</a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </form>
+      </div>
+    </section>
 
-    <script type="module" src="{{ url_for('static', filename='app.js') }}"></script>
-  </body>
+    <section class="panel">
+      <div class="board">
+        <div class="board__column">
+          <h2>Reminders</h2>
+          <div class="board__list">
+            {% for item in reminders %}
+              <article class="item {% if item.completed %}completed{% endif %}">
+                <div class="item__header">
+                  <span>⏰</span>
+                  <a class="icon-button" href="{{ url_for('edit_item_form', item_id=item.id, type=filter_type, tag=filter_tag, search=search_query) }}">✎</a>
+                </div>
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.details or 'No details' }}</p>
+                <p class="item__meta">
+                  <span class="tag">
+                    Remind at
+                    {% if item.scheduled_at %}
+                      {{ item.scheduled_at.strftime('%b %d, %Y %I:%M %p') }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </span>
+                </p>
+                <p>{% for tag in item.tags %}<span class="tag">#{{ tag }}</span>{% endfor %}</p>
+                <div class="item__actions">
+                  <form method="POST" action="{{ url_for('toggle_complete_form', item_id=item.id) }}">
+                    <button class="btn small {% if item.completed %}btn-done{% endif %}" type="submit">
+                      {% if item.completed %}Undone{% else %}Done{% endif %}
+                    </button>
+                  </form>
+                  <form method="POST" action="{{ url_for('delete_item_form', item_id=item.id) }}"><button class="btn ghost small" type="submit">Delete</button></form>
+                </div>
+              </article>
+            {% else %}
+              <div class="empty-state">No reminders.</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="board__column">
+          <h2>Tasks</h2>
+          <div class="board__list">
+            {% for item in tasks %}
+              <article class="item {% if item.completed %}completed{% endif %}">
+                <div class="item__header">
+                  <span>✅</span>
+                  <a class="icon-button" href="{{ url_for('edit_item_form', item_id=item.id, type=filter_type, tag=filter_tag, search=search_query) }}">✎</a>
+                </div>
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.details or 'No details' }}</p>
+                <p class="item__meta">
+                  <span class="tag">
+                    Remind at
+                    {% if item.deadline %}
+                      {{ item.deadline.strftime('%b %d, %Y %I:%M %p') }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </span>
+                </p>
+                <p>{% for tag in item.tags %}<span class="tag">#{{ tag }}</span>{% endfor %}</p>
+                <div class="item__actions">
+                  <form method="POST" action="{{ url_for('toggle_complete_form', item_id=item.id) }}">
+                    <button class="btn small {% if item.completed %}btn-done{% endif %}" type="submit">
+                      {% if item.completed %}Undone{% else %}Done{% endif %}
+                    </button>
+                  </form>
+                  <form method="POST" action="{{ url_for('delete_item_form', item_id=item.id) }}"><button class="btn ghost small" type="submit">Delete</button></form>
+                </div>
+              </article>
+            {% else %}
+              <div class="empty-state">No tasks.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const reminderField = document.getElementById('datetime-field');
+      const deadlineField = document.getElementById('deadline-field');
+      function swap() {
+        const isReminder = document.querySelector('input[name=\"type\"]:checked')?.value === 'reminder';
+        reminderField.hidden = !isReminder;
+        deadlineField.hidden = isReminder;
+      }
+      document.querySelectorAll('input[name=\"type\"]').forEach((r) => r.addEventListener('change', swap));
+      swap();
+    });
+  </script>
+</body>
 </html>
-

@@ -5,7 +5,7 @@
 (https://cs-project-2025-alex-ust-production.up.railway.app)
 
 ## Description
-Note, reminred and tasks taking app, which allows user to track them by time, sort by some tags and mark their progress. 
+Reminders and tasks taking app, which allows user to track them by time, sort by some tags and mark their progress. 
 
 ## Setup
 
@@ -13,8 +13,6 @@ You can run backend locally using this command:
 ```bash
 flask --app server run -h 0.0.0.0 -p 8080
 ```
-
-Describe the steps to set up the environment and run the application. This can be a bash script or docker commands.
 
 ```bash
 pip3 install -r requirements.txt
@@ -30,11 +28,9 @@ Describe technologies, libraries, languages you are using (this can be updated i
 Backend:
 - Flask (web framework)
 - Python 3.7+ (uses built-in modules: uuid, datetime, enum)
-- requests for telegram bot (?) not decided yet
 
 Testing:
 - requests
-- postman (for server endpoints testing)
 
 Frontend:
 - HTML
@@ -46,30 +42,19 @@ Frontend:
 
 The application uses the following entity classes (defined in `models.py`):
 
-1. **Item**: Represents notes, reminders, or tasks
-   - Attributes: id, type (note/reminder/task), title, details, tags, datetime, completed, created_at, updated_at
-   - Supports all three item types with optional datetime for reminders and tasks
+1. **Item**: Represents reminders or tasks
+   - Attributes: id, type (reminder/task), title, details, tags, telegramChatId, datetime (for reminders), deadline (for tasks), completed, created_at, updated_at
+   - Supports reminders with optional datetime and tasks with optional deadline
 
-2. **User**: Represents application users who own items and reminders
-   - Attributes: id, name, email, telegramChatId, timezone, created_at, updated_at
-   - Stores notification preferences such as Telegram chat ID and timezone
-
-3. **Tag**: Represents tags for categorizing items
+2. **Tag**: Represents tags for categorizing items
    - Attributes: name, color (optional), created_at
    - Tags are automatically normalized to lowercase
 
-4. **Reminder**: Represents Telegram reminder notifications
+3. **Reminder**: Represents Telegram reminder notifications
    - Attributes: id, item_id, telegram_chat_id, scheduled_time, sent, created_at
    - Separate from Item type 'reminder' - this represents the actual notification mechanism
 
 ### API Endpoints
-
-#### Users
-- `GET /api/users` - Get all users (supports query parameter: email)
-- `GET /api/users/<user_id>` - Get a specific user by ID
-- `POST /api/users` - Create a new user (requires: name; optional: email, telegramChatId, timezone)
-- `PUT /api/users/<user_id>` - Update an existing user
-- `DELETE /api/users/<user_id>` - Delete a user
 
 #### Items
 - `GET /api/items` - Get all items (supports query parameters: type, tag, search, completed)
@@ -91,16 +76,14 @@ The application uses the following entity classes (defined in `models.py`):
 - `PUT /api/reminders/<reminder_id>` - Update an existing reminder
 - `DELETE /api/reminders/<reminder_id>` - Delete a reminder
 
-**Note**: Currently, all data is stored in-memory. Database integration will be added in the future.
+**Note**: All data is stored in-memory dictionaries; restarting the app clears data.
 
 ## Features
 
 Describe the main features the application performs.
 
-* Feature 1
-User can create new tasks with specific tags and track their progress.
-* Feature 2
-User can be reminded of some task via telegram.
+- Create reminders or tasks, filter by type/tag/search, and mark completion.
+- Optional Telegram chat id is stored with each item for future notifications.
 
 ## Git
 
@@ -113,4 +96,4 @@ Describe the criteria by which the success of the project can be determined
 (this will be updated in the future)
 
 * Criteria 1
-notes can be taken =)
+Reminders and tasks can be created and managed
