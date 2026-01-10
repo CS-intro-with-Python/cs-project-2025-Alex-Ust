@@ -1,6 +1,7 @@
 import os
 import logging 
 import logger
+import time
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from models import db, Task, Reminder, parse_dt
@@ -55,7 +56,14 @@ def build_reminder(data, existing: Reminder | None = None):
 
 
 with app.app_context():
-    db.create_all()
+    for attempt in range(10):
+        try:
+            db.create_all()
+            break
+        except Exception:
+            if attempt == 9:
+                raise
+            time.sleep(2)
 
 
 @app.route("/")
