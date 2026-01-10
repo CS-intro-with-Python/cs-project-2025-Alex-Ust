@@ -13,8 +13,7 @@ def main():
 
   send("GET", "/")
 
-  # Item with Telegram id
-  item = send("POST", "/api/items", json={"type": "task", "title": "Test task", "telegramChatId": "123"})
+  item = send("POST", "/api/items", json={"type": "task", "title": "Test task"})
   item_id = item.json().get("id") if item.ok else None
   if item_id:
     send("PUT", f"/api/items/{item_id}", json={"completed": True})
@@ -22,12 +21,11 @@ def main():
     send("GET", f"/api/items/{item_id}")
 
   # Reminder
-  rem_item = send("POST", "/api/items", json={"type": "reminder", "title": "Ping", "telegramChatId": "123"})
+  rem_item = send("POST", "/api/items", json={"type": "reminder", "title": "Ping"})
   rem_item_id = rem_item.json().get("id") if rem_item.ok else None
   if rem_item_id:
     rem = send("POST", "/api/reminders", json={
       "itemId": rem_item_id,
-      "telegramChatId": "123",
       "scheduledTime": (datetime.now() + timedelta(minutes=30)).isoformat(),
     })
     rem_id = rem.json().get("id") if rem.ok else None

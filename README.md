@@ -5,7 +5,7 @@
 (https://cs-project-2025-alex-ust-production.up.railway.app)
 
 ## Description
-Simple reminders/tasks board: add items, filter by type/tag/search, mark done, and keep an optional Telegram chat id with each item
+Simple reminders/tasks board: add items, filter by type, mark done
 
 ## Setup
 
@@ -14,6 +14,14 @@ pip3 install -r requirements.txt
 docker build -t server .
 docker run --rm -p 8080:8080 -v ${PWD}:/app server
 ```
+
+## Docker Compose
+
+```bash
+docker compose up --build
+```
+
+The app will be available at `http://localhost:8080`.
 
 ## Requirements
 
@@ -31,21 +39,18 @@ Frontend:
 ## API Structure
 
 ### Entity Classes (models.py)
-- **Item**: id, type (reminder/task), title, details, tags, telegramChatId, datetime (reminders), deadline (tasks), completed, created_at, updated_at
-- **Tag**: name, created_at
-- **Reminder**: id, item_id, telegram_chat_id, scheduled_time (optional), sent, created_at
+- **Item**: id, type (reminder/task), title, details, datetime (reminders), deadline (tasks), completed, created_at, updated_at
+- **Reminder**: id, item_id, scheduled_time (optional), sent, created_at
 
 ### Endpoints
-- **Items**: `GET /api/items` (filters: type, tag, search, completed); `GET /api/items/<id>`; `POST /api/items`; `PUT /api/items/<id>`; `DELETE /api/items/<id>`; `POST /api/items/<id>/toggle-complete`
-- **Tags**: `GET /api/tags`; `GET /api/tags/<tag_name>`; `GET /api/tags/<tag_name>/items`
-- **Reminders**: `GET /api/reminders` (filters: item_id, sent); `GET /api/reminders/<id>`; `POST /api/reminders` (itemId, telegramChatId; scheduledTime optional); `PUT /api/reminders/<id>`; `DELETE /api/reminders/<id>`
+- **Items**: `GET /api/items` (filters: type, completed); `GET /api/items/<id>`; `POST /api/items`; `PUT /api/items/<id>`; `DELETE /api/items/<id>`; `POST /api/items/<id>/toggle-complete`
+- **Reminders**: `GET /api/reminders` (filters: item_id, sent); `GET /api/reminders/<id>`; `POST /api/reminders` (itemId; scheduledTime optional); `PUT /api/reminders/<id>`; `DELETE /api/reminders/<id>`
 
 
 
 ## Features
 
-- Create reminders or tasks, filter by type/tag/search, and mark completion
-- Store optional Telegram chat id with each item for future notifications
+- Create reminders or tasks, filter by type, and mark completion
 
 ## Git
 
@@ -62,5 +67,3 @@ Reminders and tasks can be created
 
 * Criteria 2
 Reminders and tasks can be edit
-
-

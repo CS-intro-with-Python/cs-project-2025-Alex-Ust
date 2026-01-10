@@ -3,7 +3,7 @@ import logging
 import logger
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for
-from models import db, Task, Tag, Reminder, parse_dt
+from models import db, Task, Reminder, parse_dt
 
 app = Flask(__name__)
 
@@ -25,20 +25,15 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
 
+
 logger.setup_logger() 
-
-
-def tag_list(raw):
-    return [t.strip().lower() for t in (raw or "").split(",") if t.strip()]
 
 
 def build_task(data, existing: Task | None = None):
     task = existing or Task()
     task.title = (data.get("title") or "").strip()
     task.details = data.get("details", "") or ""
-    task.tags = tag_list(data.get("tags", ""))
-    task.telegram_id = data.get("telegramChatId")
-    task.deadline = parse_dt(data.get("deadline"))
+    task.deadline = parse_dt(data.get("deadline") or data.get("datetime"))
     if "completed" in data:
         task.completed = bool(data.get("completed"))
     task.updated_at = datetime.now()
@@ -49,8 +44,6 @@ def build_reminder(data, existing: Reminder | None = None):
     reminder = existing or Reminder()
     reminder.title = (data.get("title") or "").strip()
     reminder.details = data.get("details", "") or ""
-    reminder.tags = tag_list(data.get("tags", ""))
-    reminder.telegram_id = data.get("telegramChatId")
     reminder.scheduled_at = parse_dt(data.get("scheduledTime")) or parse_dt(data.get("datetime"))
     if "sent" in data:
         reminder.sent = bool(data.get("sent"))
@@ -64,24 +57,17 @@ with app.app_context():
 
 @app.route("/")
 def hello():
-    filter_type = "all"
-    filter_tag = request.args.get("tag", "all")
-    search_query = request.args.get("search", "")
-
-    task_q = Task.query
-    reminder_q = Reminder.query
-    if filter_tag != "all":
-        task_q = task_q.filter(Task.tags.contains([filter_tag.lower()]))
-        reminder_q = reminder_q.filter(Reminder.tags.contains([filter_tag.lower()]))
-    if search_query:
-        like = f"%{search_query.lower()}%"
-        task_q = task_q.filter((Task.title.ilike(like)) | (Task.details.ilike(like)))
-        reminder_q = reminder_q.filter((Reminder.title.ilike(like)) | (Reminder.details.ilike(like)))
-
-    reminders = reminder_q.order_by(Reminder.scheduled_at, Reminder.created_at).all()
-    tasks = task_q.order_by(Task.deadline, Task.created_at).all()
-
-    all_tags = [t.name for t in Tag.query.order_by(Tag.name).all()]
+    filter_type = request.args.get("type", "all")
+    reminders = (
+        Reminder.query.order_by(Reminder.scheduled_at, Reminder.created_at).all()
+        if filter_type != "task"
+        else []
+    )
+    tasks = (
+        Task.query.order_by(Task.deadline, Task.created_at).all()
+        if filter_type != "reminder"
+        else []
+    )
     counts = {
         "reminder": Reminder.query.count(),
         "task": Task.query.count(),
@@ -91,26 +77,16 @@ def hello():
         "index.html",
         reminders=reminders,
         tasks=tasks,
-        all_tags=all_tags,
         counts=counts,
         filter_type=filter_type,
-        filter_tag=filter_tag,
-        search_query=search_query,
     )
 
 
 @app.route("/api/items", methods=["GET"])
 def get_items():
     query = Task.query
-    tag = request.args.get("tag")
-    search = (request.args.get("search") or "").lower()
     completed = request.args.get("completed")
 
-    if tag:
-        query = query.filter(Task.tags.contains([tag.lower()]))
-    if search:
-        like = f"%{search}%"
-        query = query.filter((Task.title.ilike(like)) | (Task.details.ilike(like)))
     if completed is not None:
         query = query.filter(Task.completed == (completed.lower() == "true"))
     return jsonify([i.to_dict() for i in query.all()])
@@ -210,13 +186,10 @@ def edit_item_form(item_id):
 
     edit_target = item or reminder_item
     edit_type = "task" if item else "reminder"
-
-    filter_tag = request.args.get("tag", "all")
-    search_query = request.args.get("search", "")
+    filter_type = request.args.get("type", "all")
 
     reminders = Reminder.query.all()
     tasks = Task.query.all()
-    all_tags = [t.name for t in Tag.query.order_by(Tag.name).all()]
     counts = {
         "reminder": Reminder.query.count(),
         "task": Task.query.count(),
@@ -226,11 +199,8 @@ def edit_item_form(item_id):
         "index.html",
         reminders=reminders,
         tasks=tasks,
-        all_tags=all_tags,
         counts=counts,
-        filter_type="all",
-        filter_tag=filter_tag,
-        search_query=search_query,
+        filter_type=filter_type,
         edit_item=edit_target,
         edit_type=edit_type,
     )
@@ -285,36 +255,6 @@ def toggle_complete(item_id):
 
 
 
-@app.route("/api/tags", methods=["GET"])
-def get_tags():
-    tags = Tag.query.order_by(Tag.name).all()
-    return jsonify([t.to_dict() for t in tags])
-
-
-@app.route("/api/tags/<tag_name>", methods=["GET"])
-def get_tag(tag_name):
-    tag = Tag.query.get(tag_name.lower())
-    if not tag:
-        return jsonify({"error": "Tag not found"}), 404
-    return jsonify(tag.to_dict())
-
-
-@app.route("/api/tags/<tag_name>/items", methods=["GET"])
-def get_items_by_tag(tag_name):
-    items = Item.query.filter(Item.tags.any(Tag.name == tag_name.lower())).all()
-    return jsonify([i.to_dict() for i in items])
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @app.route("/api/reminders", methods=["GET"])
@@ -338,13 +278,11 @@ def get_reminder(reminder_id):
 @app.route("/api/reminders", methods=["POST"])
 def create_reminder():
     data = request.get_json() or {}
-    if not data.get("title") or not data.get("telegramChatId"):
-        return jsonify({"error": "title and telegramChatId are required"}), 400
+    if not data.get("title"):
+        return jsonify({"error": "title is required"}), 400
     reminder = Reminder(
         title=data["title"],
         details=data.get("details", ""),
-        tags=tag_list(data.get("tags", "")),
-        telegram_id=data["telegramChatId"],
         scheduled_time=parse_dt(data.get("scheduledTime")),
         sent=bool(data.get("sent", False)),
     )
@@ -363,10 +301,6 @@ def update_reminder(reminder_id):
         reminder.title = data["title"].strip()
     if "details" in data:
         reminder.details = data.get("details", "")
-    if "tags" in data:
-        reminder.tags = tag_list(data.get("tags", ""))
-    if "telegramChatId" in data:
-        reminder.telegram_id = data["telegramChatId"]
     if "scheduledTime" in data:
         reminder.scheduled_time = parse_dt(data.get("scheduledTime"))
     if "sent" in data:
