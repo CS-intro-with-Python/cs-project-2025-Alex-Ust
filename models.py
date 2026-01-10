@@ -1,92 +1,82 @@
-from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from enum import Enum
-from typing import List, Optional
+from typing import Optional
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.postgresql import ARRAY
+
+db = SQLAlchemy()
 
 
-class ItemType(Enum):
-  REMINDER = "reminder"
-  TASK = "task"
+class Task(db.Model):
+    __tablename__ = "tasks"
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    details = db.Column(db.Text, default="")
+    tags = db.Column(ARRAY(db.String), default=list)
+    telegram_id = db.Column(db.String(64))
+    deadline = db.Column(db.DateTime)
+    completed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "title": self.title,
+            "details": self.details or "",
+            "tags": self.tags or [],
+            "telegramChatId": self.telegram_id,
+            "deadline": self.deadline.isoformat() if self.deadline else None,
+            "completed": self.completed,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+            "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
+        }
 
 
-def parse_dt(value: Optional[str]) -> Optional[datetime]:
-  if not value:
-    return None
-  try:
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
-  except Exception:
-    return None
+class Tag(db.Model):
+    __tablename__ = "tags"
+
+    name = db.Column(db.String(100), primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self) -> dict:
+        return {"name": self.name, "createdAt": self.created_at.isoformat() if self.created_at else None}
 
 
-@dataclass
-class Item:
-  id: str
-  type: ItemType
-  title: str
-  details: str = ""
-  tags: List[str] = field(default_factory=list)
-  telegram_chat_id: Optional[str] = None
-  scheduled_at: Optional[datetime] = None
-  deadline: Optional[datetime] = None
-  completed: bool = False
-  created_at: datetime = field(default_factory=datetime.now)
-  updated_at: datetime = field(default_factory=datetime.now)
+class Reminder(db.Model):
+    __tablename__ = "reminders"
 
-  def to_dict(self) -> dict:
-    data = asdict(self)
-    data["type"] = self.type.value
-    data["createdAt"] = self.created_at.isoformat()
-    data["updatedAt"] = self.updated_at.isoformat()
-    data["datetime"] = self.scheduled_at.isoformat() if self.scheduled_at else None
-    data["deadline"] = self.deadline.isoformat() if self.deadline else None
-    data["telegramChatId"] = self.telegram_chat_id
-    data.pop("scheduled_at", None)
-    data.pop("created_at", None)
-    data.pop("updated_at", None)
-    return data
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    details = db.Column(db.Text, default="")
+    tags = db.Column(ARRAY(db.String), default=list)
+    telegram_id = db.Column(db.String(64), nullable=False)
+    scheduled_at = db.Column(db.DateTime)
+    sent = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-  @classmethod
-  def from_payload(cls, data: dict) -> "Item":
-    kind = ItemType(data.get("type", "task"))
-    return cls(
-      id=data.get("id", ""),
-      type=kind,
-      title=data.get("title", "").strip(),
-      details=data.get("details", "") or "",
-      tags=data.get("tags", []) or [],
-      telegram_chat_id=data.get("telegramChatId"),
-      scheduled_at=parse_dt(data.get("datetime")) if kind == ItemType.REMINDER else None,
-      deadline=parse_dt(data.get("deadline")) if kind == ItemType.TASK else None,
-      completed=bool(data.get("completed", False)),
-      created_at=parse_dt(data.get("createdAt")) or datetime.now(),
-      updated_at=parse_dt(data.get("updatedAt")) or datetime.now(),
-    )
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "title": self.title,
+            "details": self.details or "",
+            "tags": self.tags or [],
+            "telegramChatId": self.telegram_id,
+            "scheduledTime": self.scheduled_at.isoformat() if self.scheduled_at else None,
+            "sent": self.sent,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+            "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
+        }
 
 
-@dataclass
-class Tag:
-  name: str
-  created_at: datetime = field(default_factory=datetime.now)
 
-  def to_dict(self) -> dict:
-    return {"name": self.name, "createdAt": self.created_at.isoformat()}
-
-
-@dataclass
-class Reminder:
-  id: str
-  item_id: str
-  telegram_chat_id: str
-  scheduled_time: Optional[datetime] = None
-  sent: bool = False
-  created_at: datetime = field(default_factory=datetime.now)
-
-  def to_dict(self) -> dict:
-    return {
-      "id": self.id,
-      "itemId": self.item_id,
-      "telegramChatId": self.telegram_chat_id,
-      "scheduledTime": self.scheduled_time.isoformat() if self.scheduled_time else None,
-      "sent": self.sent,
-      "createdAt": self.created_at.isoformat() if self.created_at else None,
-    }
+def parse_dt(value: Optional[str]):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except Exception:
+        return None
+    
+    

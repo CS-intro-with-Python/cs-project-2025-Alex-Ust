@@ -1,98 +1,92 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+import os
+import logging 
+import logger
 from datetime import datetime
-from models import Item, ItemType, Tag, Reminder, parse_dt
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+from models import db, Task, Tag, Reminder, parse_dt
 
 app = Flask(__name__)
 
-# In-memory storage
-items_store = {}
-tags_store = {}
-reminders_store = {}
-item_counter = 0
-reminder_counter = 0
-
-#==================== Counter + Maker ====================
-def new_item_id():
-    global item_counter
-    item_counter += 1
-    return str(item_counter)
+@app.before_request
+def load_user():
+    logger = logging.getLogger("app_logger")
+    client_ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    logger.info("Incoming request: %s %s from %s", request.method, request.path, client_ip)
+    logger.info("Happy new year 2026!")
 
 
-def new_reminder_id():
-    global reminder_counter
-    reminder_counter += 1
-    return str(reminder_counter)
+
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+    "DATABASE_URL",
+    "postgresql://postgres:mysecretpassword@host.docker.internal:5432/items_storage",
+)
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db.init_app(app)
+
+
+logger.setup_logger() 
 
 
 def tag_list(raw):
     return [t.strip().lower() for t in (raw or "").split(",") if t.strip()]
 
 
-def update_tags(tags):
-    for tag_name in tags:
-        tags_store.setdefault(tag_name, Tag(name=tag_name))
-
-
-def build_item(data, existing=None):
-    """Create or update Item from dict/form data."""
-    item = existing or Item(
-        id=data.get("id") or new_item_id(),
-        type=ItemType(data.get("type", "task")),
-        title="",
-    )
-    item.title = (data.get("title") or "").strip()
-    item.details = data.get("details", "") or ""
-    item.tags = tag_list(data.get("tags", ""))
-    item.telegram_chat_id = data.get("telegramChatId")
-
-    # set type if provided
-    if "type" in data:
-        item.type = ItemType(data.get("type", item.type.value))
-
-    if item.type == ItemType.REMINDER:
-        item.scheduled_at = parse_dt(data.get("datetime"))
-        item.deadline = None
-    else:
-        item.deadline = parse_dt(data.get("deadline"))
-        item.scheduled_at = None
+def build_task(data, existing: Task | None = None):
+    task = existing or Task()
+    task.title = (data.get("title") or "").strip()
+    task.details = data.get("details", "") or ""
+    task.tags = tag_list(data.get("tags", ""))
+    task.telegram_id = data.get("telegramChatId")
+    task.deadline = parse_dt(data.get("deadline"))
     if "completed" in data:
-        item.completed = bool(data.get("completed"))
-    item.updated_at = datetime.now()
-    update_tags(item.tags)
-    return item
+        task.completed = bool(data.get("completed"))
+    task.updated_at = datetime.now()
+    return task
+
+
+def build_reminder(data, existing: Reminder | None = None):
+    reminder = existing or Reminder()
+    reminder.title = (data.get("title") or "").strip()
+    reminder.details = data.get("details", "") or ""
+    reminder.tags = tag_list(data.get("tags", ""))
+    reminder.telegram_id = data.get("telegramChatId")
+    reminder.scheduled_at = parse_dt(data.get("scheduledTime")) or parse_dt(data.get("datetime"))
+    if "sent" in data:
+        reminder.sent = bool(data.get("sent"))
+    reminder.updated_at = datetime.now()
+    return reminder
+
+
+with app.app_context():
+    db.create_all()
 
 
 @app.route("/")
 def hello():
-    """Main page with items list."""
-    filter_type = request.args.get("type", "all")
+    filter_type = "all"
     filter_tag = request.args.get("tag", "all")
     search_query = request.args.get("search", "")
-    
-    items = list(items_store.values())
-    
-    if filter_type != "all":
-        items = [item for item in items if item.type.value == filter_type]
+
+    task_q = Task.query
+    reminder_q = Reminder.query
     if filter_tag != "all":
-        items = [item for item in items if filter_tag.lower() in [t.lower() for t in item.tags]]
+        task_q = task_q.filter(Task.tags.contains([filter_tag.lower()]))
+        reminder_q = reminder_q.filter(Reminder.tags.contains([filter_tag.lower()]))
     if search_query:
-        search_lower = search_query.lower()
-        items = [item for item in items 
-                if search_lower in item.title.lower() or search_lower in item.details.lower()]
-    
-    reminders = [item for item in items if item.type == ItemType.REMINDER]
-    tasks = [item for item in items if item.type == ItemType.TASK]
-    
-    reminders.sort(key=lambda x: (x.scheduled_at or datetime.min, x.created_at))
-    tasks.sort(key=lambda x: (x.deadline or datetime.min, x.created_at))
-    
-    all_tags = sorted(set(tag.lower() for item in items_store.values() for tag in item.tags))
-    
+        like = f"%{search_query.lower()}%"
+        task_q = task_q.filter((Task.title.ilike(like)) | (Task.details.ilike(like)))
+        reminder_q = reminder_q.filter((Reminder.title.ilike(like)) | (Reminder.details.ilike(like)))
+
+    reminders = reminder_q.order_by(Reminder.scheduled_at, Reminder.created_at).all()
+    tasks = task_q.order_by(Task.deadline, Task.created_at).all()
+
+    all_tags = [t.name for t in Tag.query.order_by(Tag.name).all()]
     counts = {
-        "reminder": len([i for i in items_store.values() if i.type == ItemType.REMINDER]),
-        "task": len([i for i in items_store.values() if i.type == ItemType.TASK]),
+        "reminder": Reminder.query.count(),
+        "task": Task.query.count(),
     }
-    
+
     return render_template(
         "index.html",
         reminders=reminders,
@@ -105,33 +99,29 @@ def hello():
     )
 
 
-# ==================== ITEM ENDPOINTS ====================
-
 @app.route("/api/items", methods=["GET"])
 def get_items():
-    items = list(items_store.values())
-    t = request.args.get("type")
+    query = Task.query
     tag = request.args.get("tag")
     search = (request.args.get("search") or "").lower()
     completed = request.args.get("completed")
 
-    if t:
-        items = [i for i in items if i.type.value == t]
     if tag:
-        items = [i for i in items if tag.lower() in [t.lower() for t in i.tags]]
+        query = query.filter(Task.tags.contains([tag.lower()]))
     if search:
-        items = [i for i in items if search in i.title.lower() or search in i.details.lower()]
+        like = f"%{search}%"
+        query = query.filter((Task.title.ilike(like)) | (Task.details.ilike(like)))
     if completed is not None:
-        want = completed.lower() == "true"
-        items = [i for i in items if i.completed == want]
-    return jsonify([i.to_dict() for i in items])
+        query = query.filter(Task.completed == (completed.lower() == "true"))
+    return jsonify([i.to_dict() for i in query.all()])
 
 
-@app.route("/api/items/<item_id>", methods=["GET"])
+@app.route("/api/items/<int:item_id>", methods=["GET"])
 def get_item(item_id):
-    if item_id not in items_store:
+    item = Task.query.get(item_id)
+    if not item:
         return jsonify({"error": "Item not found"}), 404
-    return jsonify(items_store[item_id].to_dict())
+    return jsonify(item.to_dict())
 
 
 @app.route("/items/create", methods=["POST"])
@@ -139,10 +129,15 @@ def create_item_form():
     data = request.form
     if not (data.get("title") or "").strip():
         return redirect(url_for("hello") + "?error=Title is required")
-    item = build_item(data)
-    if not item.title:
-        return redirect(url_for("hello") + "?error=Title is required")
-    items_store[item.id] = item
+    if data.get("type") == "reminder":
+        item = build_reminder(data)
+        item.created_at = datetime.now()
+        db.session.add(item)
+    else:
+        item = build_task(data)
+        item.created_at = datetime.now()
+        db.session.add(item)
+    db.session.commit()
     return redirect(url_for("hello"))
 
 
@@ -151,212 +146,250 @@ def create_item():
     data = request.get_json() or {}
     if not data.get("title"):
         return jsonify({"error": "Title is required"}), 400
-    data.setdefault("id", new_item_id())
-    item = build_item(data)
-    items_store[item.id] = item
+    if data.get("type") == "reminder":
+        reminder = build_reminder(data)
+        reminder.created_at = datetime.now()
+        db.session.add(reminder)
+        db.session.commit()
+        return jsonify(reminder.to_dict()), 201
+    item = build_task(data)
+    item.created_at = datetime.now()
+    db.session.add(item)
+    db.session.commit()
     return jsonify(item.to_dict()), 201
 
 
-@app.route("/api/items/<item_id>", methods=["PUT"])
+@app.route("/api/items/<int:item_id>", methods=["PUT"])
 def update_item(item_id):
-    if item_id not in items_store:
+    task = Task.query.get(item_id)
+    reminder = Reminder.query.get(item_id) if not task else None
+    if not task and not reminder:
         return jsonify({"error": "Item not found"}), 404
-    
     data = request.get_json() or {}
-    updated = build_item(data, existing=items_store[item_id])
-    items_store[item_id] = updated
-    return jsonify(updated.to_dict())
+    if reminder:
+        build_reminder(data, existing=reminder)
+        db.session.commit()
+        return jsonify(reminder.to_dict())
+    build_task(data, existing=task)
+    db.session.commit()
+    return jsonify(task.to_dict())
 
 
-@app.route("/api/items/<item_id>", methods=["DELETE"])
+@app.route("/api/items/<int:item_id>", methods=["DELETE"])
 def delete_item(item_id):
-    if item_id not in items_store:
+    item = Task.query.get(item_id)
+    reminder = Reminder.query.get(item_id) if not item else None
+    if not item and not reminder:
         return jsonify({"error": "Item not found"}), 404
-    
-    del items_store[item_id]
+    db.session.delete(item or reminder)
+    db.session.commit()
     return jsonify({"message": "Item deleted"}), 200
 
 
-@app.route("/items/<item_id>/toggle-complete", methods=["POST"])
+@app.route("/items/<int:item_id>/toggle-complete", methods=["POST"])
 def toggle_complete_form(item_id):
-    if item_id not in items_store:
-        return redirect(url_for("hello") + "?error=Item not found")
-    
-    item = items_store[item_id]
-    item.completed = not item.completed
-    item.updated_at = datetime.now()
-    
+    task = Task.query.get(item_id)
+    reminder = Reminder.query.get(item_id) if not task else None
+    if task:
+        task.completed = not task.completed
+        task.updated_at = datetime.now()
+        db.session.commit()
+    elif reminder:
+        reminder.sent = not reminder.sent
+        reminder.updated_at = datetime.now()
+        db.session.commit()
     return redirect(url_for("hello"))
 
 
-@app.route("/items/<item_id>/edit", methods=["GET"])
+@app.route("/items/<int:item_id>/edit")
 def edit_item_form(item_id):
-    if item_id not in items_store:
+    item = Task.query.get(item_id)
+    reminder_item = Reminder.query.get(item_id) if not item else None
+    if not item and not reminder_item:
         return redirect(url_for("hello") + "?error=Item not found")
-    
-    item = items_store[item_id]
-    
-    filter_type = request.args.get("type", "all")
+
+    edit_target = item or reminder_item
+    edit_type = "task" if item else "reminder"
+
     filter_tag = request.args.get("tag", "all")
     search_query = request.args.get("search", "")
-    
-    items = list(items_store.values())
-    reminders = [i for i in items if i.type == ItemType.REMINDER]
-    tasks = [i for i in items if i.type == ItemType.TASK]
-    all_tags = sorted(set(tag.lower() for item in items_store.values() for tag in item.tags))
+
+    reminders = Reminder.query.all()
+    tasks = Task.query.all()
+    all_tags = [t.name for t in Tag.query.order_by(Tag.name).all()]
     counts = {
-        "reminder": len([i for i in items_store.values() if i.type == ItemType.REMINDER]),
-        "task": len([i for i in items_store.values() if i.type == ItemType.TASK]),
+        "reminder": Reminder.query.count(),
+        "task": Task.query.count(),
     }
-    
+
     return render_template(
         "index.html",
         reminders=reminders,
         tasks=tasks,
         all_tags=all_tags,
         counts=counts,
-        filter_type=filter_type,
+        filter_type="all",
         filter_tag=filter_tag,
         search_query=search_query,
-        edit_item=item,
+        edit_item=edit_target,
+        edit_type=edit_type,
     )
 
 
-@app.route("/items/<item_id>/update", methods=["POST"])
+@app.route("/items/<int:item_id>/update", methods=["POST"])
 def update_item_form(item_id):
-    if item_id not in items_store:
+    item = Task.query.get(item_id)
+    reminder_item = Reminder.query.get(item_id) if not item else None
+    if not item and not reminder_item:
         return redirect(url_for("hello") + "?error=Item not found")
-    
-    items_store[item_id] = build_item(request.form, existing=items_store[item_id])
+    data = request.form
+    if reminder_item:
+        build_reminder(data, existing=reminder_item)
+    else:
+        build_task(data, existing=item)
+    db.session.commit()
     return redirect(url_for("hello"))
 
 
-@app.route("/items/<item_id>/delete", methods=["POST"])
+@app.route("/items/<int:item_id>/delete", methods=["POST"])
 def delete_item_form(item_id):
-    if item_id not in items_store:
-        return redirect(url_for("hello") + "?error=Item not found")
-    
-    del items_store[item_id]
+    item = Task.query.get(item_id)
+    reminder_item = Reminder.query.get(item_id) if not item else None
+    if item or reminder_item:
+        db.session.delete(item or reminder_item)
+        db.session.commit()
     return redirect(url_for("hello"))
 
 
-@app.route("/api/items/<item_id>/toggle-complete", methods=["POST"])
+@app.route("/api/items/<int:item_id>/toggle-complete", methods=["POST"])
 def toggle_complete(item_id):
-    if item_id not in items_store:
+    task = Task.query.get(item_id)
+    reminder = Reminder.query.get(item_id) if not task else None
+    if not task and not reminder:
         return jsonify({"error": "Item not found"}), 404
-    
-    item = items_store[item_id]
-    item.completed = not item.completed
-    item.updated_at = datetime.now()
-    
-    return jsonify(item.to_dict())
+    if task:
+        task.completed = not task.completed
+        task.updated_at = datetime.now()
+        db.session.commit()
+        return jsonify(task.to_dict())
+    reminder.sent = not reminder.sent
+    reminder.updated_at = datetime.now()
+    db.session.commit()
+    return jsonify(reminder.to_dict())
 
 
-# ==================== TAG ENDPOINTS ====================
+
+
+
+
+
+
 
 @app.route("/api/tags", methods=["GET"])
 def get_tags():
-    return jsonify([tag.to_dict() for tag in tags_store.values()])
+    tags = Tag.query.order_by(Tag.name).all()
+    return jsonify([t.to_dict() for t in tags])
 
 
 @app.route("/api/tags/<tag_name>", methods=["GET"])
 def get_tag(tag_name):
-    tag_name = tag_name.lower()
-    if tag_name not in tags_store:
+    tag = Tag.query.get(tag_name.lower())
+    if not tag:
         return jsonify({"error": "Tag not found"}), 404
-    return jsonify(tags_store[tag_name].to_dict())
+    return jsonify(tag.to_dict())
 
 
 @app.route("/api/tags/<tag_name>/items", methods=["GET"])
 def get_items_by_tag(tag_name):
-    tag_name = tag_name.lower()
-    items = [item for item in items_store.values() 
-            if tag_name in [t.lower() for t in item.tags]]
-    return jsonify([item.to_dict() for item in items])
+    items = Item.query.filter(Item.tags.any(Tag.name == tag_name.lower())).all()
+    return jsonify([i.to_dict() for i in items])
 
 
-# ==================== REMINDER ENDPOINTS ====================
+
+
+
+
+
+
+
+
+
+
+
 
 @app.route("/api/reminders", methods=["GET"])
 def get_reminders():
-    reminders = list(reminders_store.values())
-    
+    query = Reminder.query
     item_id = request.args.get("item_id")
-    if item_id:
-        reminders = [r for r in reminders if r.item_id == item_id]
-    
     sent = request.args.get("sent")
     if sent is not None:
-        sent_bool = sent.lower() == "true"
-        reminders = [r for r in reminders if r.sent == sent_bool]
-    
-    return jsonify([reminder.to_dict() for reminder in reminders])
+        query = query.filter_by(sent=(sent.lower() == "true"))
+    return jsonify([r.to_dict() for r in query.all()])
 
 
-@app.route("/api/reminders/<reminder_id>", methods=["GET"])
+@app.route("/api/reminders/<int:reminder_id>", methods=["GET"])
 def get_reminder(reminder_id):
-    if reminder_id not in reminders_store:
+    reminder = Reminder.query.get(reminder_id)
+    if not reminder:
         return jsonify({"error": "Reminder not found"}), 404
-    return jsonify(reminders_store[reminder_id].to_dict())
+    return jsonify(reminder.to_dict())
 
 
 @app.route("/api/reminders", methods=["POST"])
 def create_reminder():
-    data = request.get_json()
-    
-    if not data or not all(k in data for k in ["itemId", "telegramChatId"]):
-        return jsonify({"error": "itemId and telegramChatId are required"}), 400
-    
-    if data["itemId"] not in items_store:
-        return jsonify({"error": "Item not found"}), 404
-    
-    reminder_id = data.get("id") or new_reminder_id()
-    
-    scheduled_time = parse_dt(data.get("scheduledTime"))
+    data = request.get_json() or {}
+    if not data.get("title") or not data.get("telegramChatId"):
+        return jsonify({"error": "title and telegramChatId are required"}), 400
     reminder = Reminder(
-        id=reminder_id,
-        item_id=data["itemId"],
-        telegram_chat_id=data["telegramChatId"],
-        scheduled_time=scheduled_time,
-        sent=data.get("sent", False),
+        title=data["title"],
+        details=data.get("details", ""),
+        tags=tag_list(data.get("tags", "")),
+        telegram_id=data["telegramChatId"],
+        scheduled_time=parse_dt(data.get("scheduledTime")),
+        sent=bool(data.get("sent", False)),
     )
-    
-    reminders_store[reminder_id] = reminder
+    db.session.add(reminder)
+    db.session.commit()
     return jsonify(reminder.to_dict()), 201
 
 
-@app.route("/api/reminders/<reminder_id>", methods=["PUT"])
+@app.route("/api/reminders/<int:reminder_id>", methods=["PUT"])
 def update_reminder(reminder_id):
-    if reminder_id not in reminders_store:
+    reminder = Reminder.query.get(reminder_id)
+    if not reminder:
         return jsonify({"error": "Reminder not found"}), 404
-    
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
-    
-    reminder = reminders_store[reminder_id]
-    
+    data = request.get_json() or {}
+    if "title" in data:
+        reminder.title = data["title"].strip()
+    if "details" in data:
+        reminder.details = data.get("details", "")
+    if "tags" in data:
+        reminder.tags = tag_list(data.get("tags", ""))
     if "telegramChatId" in data:
-        reminder.telegram_chat_id = data["telegramChatId"]
+        reminder.telegram_id = data["telegramChatId"]
     if "scheduledTime" in data:
         reminder.scheduled_time = parse_dt(data.get("scheduledTime"))
     if "sent" in data:
-        reminder.sent = data["sent"]
-    
+        reminder.sent = bool(data["sent"])
+    reminder.updated_at = datetime.now()
+    db.session.commit()
     return jsonify(reminder.to_dict())
 
 
-@app.route("/api/reminders/<reminder_id>", methods=["DELETE"])
+@app.route("/api/reminders/<int:reminder_id>", methods=["DELETE"])
 def delete_reminder(reminder_id):
-    if reminder_id not in reminders_store:
+    reminder = Reminder.query.get(reminder_id)
+    if not reminder:
         return jsonify({"error": "Reminder not found"}), 404
-    
-    del reminders_store[reminder_id]
+    db.session.delete(reminder)
+    db.session.commit()
     return jsonify({"message": "Reminder deleted"}), 200
 
 
 
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080, debug=True)

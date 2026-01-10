@@ -26,9 +26,9 @@
           {% if edit_item %}<input type="hidden" name="id" value="{{ edit_item.id }}" />{% endif %}
 
           <div class="segmented">
-            <input type="radio" name="type" id="type-reminder" value="reminder" {% if not edit_item or edit_item.type.value == 'reminder' %}checked{% endif %} />
+            <input type="radio" name="type" id="type-reminder" value="reminder" {% if not edit_item or edit_type == 'reminder' %}checked{% endif %} />
             <label for="type-reminder">Reminder</label>
-            <input type="radio" name="type" id="type-task" value="task" {% if edit_item and edit_item.type.value == 'task' %}checked{% endif %} />
+            <input type="radio" name="type" id="type-task" value="task" {% if edit_item and edit_type == 'task' %}checked{% endif %} />
             <label for="type-task">Task</label>
           </div>
 
@@ -38,8 +38,8 @@
           <input type="text" name="telegramChatId" placeholder="Telegram ID" value="{% if edit_item %}{{ edit_item.telegram_chat_id }}{% endif %}" />
 
           <p class="field__label">Remind at</p>
-          <input id="datetime-field" {% if edit_item and edit_item.type.value == 'task' %}hidden{% endif %} type="datetime-local" name="datetime" value="{% if edit_item and edit_item.type.value == 'reminder' and edit_item.scheduled_at %}{{ edit_item.scheduled_at.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
-          <input id="deadline-field" {% if not edit_item or edit_item.type.value == 'reminder' %}hidden{% endif %} type="datetime-local" name="deadline" value="{% if edit_item and edit_item.type.value == 'task' and edit_item.deadline %}{{ edit_item.deadline.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
+          <input id="datetime-field" {% if edit_item and edit_type == 'task' %}hidden{% endif %} type="datetime-local" name="datetime" value="{% if edit_item and edit_type == 'reminder' and edit_item.scheduled_at %}{{ edit_item.scheduled_at.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
+          <input id="deadline-field" {% if not edit_item or edit_type == 'reminder' %}hidden{% endif %} type="datetime-local" name="deadline" value="{% if edit_item and edit_type == 'task' and edit_item.deadline %}{{ edit_item.deadline.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
 
           <input type="text" name="tags" placeholder="add any tags" value="{% if edit_item %}{{ edit_item.tags | join(', ') }}{% endif %}" />
 
@@ -81,7 +81,7 @@
           <h2>Reminders</h2>
           <div class="board__list">
             {% for item in reminders %}
-              <article class="item {% if item.completed %}completed{% endif %}">
+              <article class="item {% if item.sent %}completed{% endif %}">
                 <div class="item__header">
                   <span>⏰</span>
                   <a class="icon-button" href="{{ url_for('edit_item_form', item_id=item.id, type=filter_type, tag=filter_tag, search=search_query) }}">✎</a>
@@ -101,8 +101,8 @@
                 <p>{% for tag in item.tags %}<span class="tag">#{{ tag }}</span>{% endfor %}</p>
                 <div class="item__actions">
                   <form method="POST" action="{{ url_for('toggle_complete_form', item_id=item.id) }}">
-                    <button class="btn small {% if item.completed %}btn-done{% endif %}" type="submit">
-                      {% if item.completed %}Undone{% else %}Done{% endif %}
+                    <button class="btn small {% if item.sent %}btn-done{% endif %}" type="submit">
+                      {% if item.sent %}Undone{% else %}Done{% endif %}
                     </button>
                   </form>
                   <form method="POST" action="{{ url_for('delete_item_form', item_id=item.id) }}"><button class="btn ghost small" type="submit">Delete</button></form>

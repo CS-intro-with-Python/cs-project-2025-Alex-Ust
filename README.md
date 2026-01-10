@@ -11,7 +11,7 @@ Simple reminders/tasks board: add items, filter by type/tag/search, mark done, a
 
 ```bash
 pip3 install -r requirements.txt
-docker build -t sever:latest .
+docker build -t server .
 docker run --rm -p 8080:8080 -v ${PWD}:/app server
 ```
 
