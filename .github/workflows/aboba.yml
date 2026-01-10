@@ -25,9 +25,16 @@ jobs:
       - name: Start services
         run: |
           docker compose up -d --build
-          sleep 20  # Wait for services to start
-
-     
+          for i in {1..30}; do
+            curl -fsS http://localhost:8080 >/dev/null && exit 0
+            sleep 2
+          done
+          echo "App did not start on port 8080"
+          echo "Docker status:"
+          docker compose ps
+          echo "App logs:"
+          docker compose logs app
+          exit 1
 
       - name: Test Flask endpoints
         run: python3 client.py
