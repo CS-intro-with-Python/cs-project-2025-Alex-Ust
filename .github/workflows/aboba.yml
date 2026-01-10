@@ -25,7 +25,9 @@ jobs:
       - name: Start services
         run: |
           docker compose up -d --build
-          sleep 8
+          sleep 20  # Wait for services to start
+
+     
 
       - name: Test Flask endpoints
         run: python3 client.py
