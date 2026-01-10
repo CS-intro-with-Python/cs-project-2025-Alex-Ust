@@ -952,3 +952,145 @@
 2026-01-10 11:50:06,131 ||| INFO ||| app_logger : Happy new year 2026!
 2026-01-10 11:50:06,179 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
 2026-01-10 11:50:06,179 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:38,284 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:47:38,286 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:38,329 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:47:38,329 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:42,139 ||| INFO ||| app_logger : Incoming request: POST /items/create from 151.101.0.223
+2026-01-10 12:47:42,140 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:42,153 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:47:42,153 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:42,174 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:47:42,175 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:44,021 ||| INFO ||| app_logger : Incoming request: POST /items/17/toggle-complete from 151.101.0.223
+2026-01-10 12:47:44,021 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:44,032 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:47:44,032 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:44,049 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:47:44,049 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:45,744 ||| INFO ||| app_logger : Incoming request: POST /items/13/toggle-complete from 151.101.0.223
+2026-01-10 12:47:45,744 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:45,757 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:47:45,758 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:45,778 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:47:45,778 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:48,740 ||| INFO ||| app_logger : Incoming request: POST /items/17/toggle-complete from 151.101.0.223
+2026-01-10 12:47:48,741 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:48,755 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:47:48,756 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:48,777 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:47:48,777 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:51,202 ||| INFO ||| app_logger : Incoming request: POST /items/13/toggle-complete from 151.101.0.223
+2026-01-10 12:47:51,203 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:51,215 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:47:51,215 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:51,235 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:47:51,235 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:53,695 ||| INFO ||| app_logger : Incoming request: POST /items/17/delete from 151.101.0.223
+2026-01-10 12:47:53,696 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:53,711 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:47:53,711 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:53,729 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:47:53,730 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:54,177 ||| INFO ||| app_logger : Incoming request: POST /items/18/delete from 151.101.0.223
+2026-01-10 12:47:54,177 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:54,190 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:47:54,190 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:54,211 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:47:54,211 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:55,039 ||| INFO ||| app_logger : Incoming request: POST /items/12/delete from 151.101.0.223
+2026-01-10 12:47:55,040 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:55,053 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:47:55,053 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:55,073 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:47:55,073 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:56,248 ||| INFO ||| app_logger : Incoming request: POST /items/13/delete from 151.101.0.223
+2026-01-10 12:47:56,248 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:56,260 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:47:56,260 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:47:56,277 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:47:56,277 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:08,070 ||| INFO ||| app_logger : Incoming request: POST /items/create from 151.101.0.223
+2026-01-10 12:48:08,070 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:08,083 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:08,084 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:08,104 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:08,104 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:09,327 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:09,327 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:09,341 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:09,341 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:09,360 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:09,361 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:09,754 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:09,755 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:09,771 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:09,771 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:09,791 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:09,792 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:10,127 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:10,127 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:10,139 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:10,140 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:10,160 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:10,160 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:10,489 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:10,490 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:10,504 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:10,505 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:10,526 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:10,528 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:10,901 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:10,902 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:10,915 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:10,915 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:10,934 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:10,935 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:11,257 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:11,258 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:11,272 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:11,273 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:11,293 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:11,293 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:11,585 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:11,586 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:11,600 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:11,601 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:11,621 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:11,621 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:12,015 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:12,015 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:12,029 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:12,029 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:12,050 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:12,050 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:12,296 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:12,297 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:12,310 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:12,311 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:12,329 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:12,329 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:12,741 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:12,742 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:12,756 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:12,756 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:12,777 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:12,778 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:13,318 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:13,318 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:13,331 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:13,331 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:13,350 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:13,351 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:13,664 ||| INFO ||| app_logger : Incoming request: POST /items/19/toggle-complete from 151.101.0.223
+2026-01-10 12:48:13,665 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:13,678 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:13,678 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:13,698 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:13,698 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:18,748 ||| INFO ||| app_logger : Incoming request: POST /items/19/delete from 151.101.0.223
+2026-01-10 12:48:18,749 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:18,762 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
+2026-01-10 12:48:18,762 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:18,782 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
+2026-01-10 12:48:18,783 ||| INFO ||| app_logger : Happy new year 2026!

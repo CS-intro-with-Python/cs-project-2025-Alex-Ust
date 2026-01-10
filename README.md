@@ -21,7 +21,7 @@ docker run --rm -p 8080:8080 -v ${PWD}:/app server
 docker compose up --build
 ```
 
-The app will be available at `http://localhost:8080`.
+The app will be available at `http://localhost:8080`
 
 ## Requirements
 
