@@ -23,16 +23,13 @@ jobs:
         run: pip install requests
 
       - name: Start services
-        working-directory: .github/workflows
         run: |
           docker compose up -d --build
           sleep 8
 
       - name: Test Flask endpoints
-        working-directory: .github/workflows
         run: python3 client.py
 
       - name: Cleanup
         if: always()
-        working-directory: .github/workflows
         run: docker compose down -v
