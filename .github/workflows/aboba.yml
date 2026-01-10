@@ -20,22 +20,16 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: |
-          pip install requests
+        run: pip install requests
 
       - name: Start services
-        working-directory: cs-project-2025-Alex-Ust
         run: |
           docker compose up -d --build
-          sleep 5 
+          sleep 8
 
       - name: Test Flask endpoints
-        working-directory: cs-project-2025-Alex-Ust
-        run: |
-          python3 client.py
+        run: python3 client.py
 
       - name: Cleanup
         if: always()
-        working-directory: cs-project-2025-Alex-Ust
-        run: |
-          docker compose down -v
+        run: docker compose down -v
