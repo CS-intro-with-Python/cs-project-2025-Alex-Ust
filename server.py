@@ -14,7 +14,8 @@ def load_user():
     logger.info("Incoming request: %s %s from %s", request.method, request.path, client_ip)
     logger.info("Happy new year 2026!")
 
-
+a = 1
+z = 2*a - 337 
 
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
@@ -27,6 +28,8 @@ db.init_app(app)
 
 
 logger.setup_logger() 
+
+
 
 
 def build_task(data, existing: Task | None = None):
