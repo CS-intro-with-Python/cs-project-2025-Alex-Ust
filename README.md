@@ -5,7 +5,7 @@
 (https://cs-project-2025-alex-ust-production.up.railway.app)
 
 ## Description
-Simple reminders/tasks board: add items, filter by type, mark done
+Simple reminders/tasks board: add reminders/tasks, edit and delete them.
 
 
 ## Setup (Docker Compose)
@@ -21,6 +21,7 @@ The app will be running at `http://localhost:8080`
 Backend:
 - Flask 
 - Python 3.11 
+- psycopg2-binary (driver for SQLAlchemy)
 
 Testing:
 - requests
@@ -32,12 +33,39 @@ Frontend:
 ## API Structure
 
 ### Entity Classes (models.py)
-- **Item**: id, type (reminder/task), title, details, datetime (reminders), deadline (tasks), completed, created_at, updated_at
-- **Reminder**: id, item_id, scheduled_time (optional), sent, created_at
+- **Task**: id, title, details, deadline, completed, created_at, updated_at
+- **Reminder**: id, title, details, scheduled_at, sent, created_at, updated_at
 
 ### Endpoints
-- **Tasks**: `GET /api/tasks` (filters: completed); `GET /api/tasks/<id>`; `POST /api/tasks`; `PUT /api/tasks/<id>`; `DELETE /api/tasks/<id>`; `POST /api/tasks/<id>/toggle-complete`
-- **Reminders**: `GET /api/reminders` (filters: item_id, sent); `GET /api/reminders/<id>`; `POST /api/reminders` (scheduledTime optional); `PUT /api/reminders/<id>`; `DELETE /api/reminders/<id>`
+- **Tasks (API)**:  
+`GET /api/tasks`;  
+`GET /api/tasks/<task_id>`;  
+`POST /api/tasks`;  
+`PUT /api/tasks/<task_id>`;  
+`DELETE /api/tasks/<task_id>`;  
+`POST /api/tasks/<task_id>/if-complete`  
+
+- **Tasks (Actions)**:  
+`POST /tasks/create`;  
+`GET /tasks/<task_id>/edit`;  
+`POST /tasks/<task_id>/update`;  
+`POST /tasks/<task_id>/delete`;  
+`POST /tasks/<task_id>/if-complete`  
+
+- **Reminders (API)**:  
+`GET /api/reminders`;  
+`GET /api/reminders/<reminder_id>`;  
+`POST /api/reminders`;  
+`PUT /api/reminders/<reminder_id>`;  
+`DELETE /api/reminders/<reminder_id>`;  
+`POST /api/reminders/<reminder_id>/if-complete`  
+
+- **Reminders (Actions)**:  
+`POST /reminders/create`;  
+`GET /reminders/<reminder_id>/edit`;  
+`POST /reminders/<reminder_id>/update`;  
+`POST /reminders/<reminder_id>/delete`;  
+`POST /reminders/<reminder_id>/if-complete`
 
 
 
@@ -46,11 +74,12 @@ Frontend:
 - Create reminders or tasks
 - Remove reminders and tasks 
 - Edit reminders and tasks 
+- Mark them as done 
+- Sort by the type of an item
 
 ## Git
 
 main
-Specify which branch will store the latest stable version of the application
 
 ## Success Criteria
 
@@ -61,4 +90,13 @@ Describe the criteria by which the success of the project can be determined
 Reminders and tasks can be created 
 
 * Criteria 2
-Reminders and tasks can be edit
+Reminders and tasks can be edit 
+
+* Criteria 3
+Reminders and tasks can be marked as done
+
+* Criteria 4
+Reminders and tasks can be deleted
+
+* Criteria 5
+Reminders and tasks can be sorted by their type

@@ -14,29 +14,24 @@ def main():
   send("GET", "/")
 
   item = send("POST", "/api/tasks", json={"type": "task", "title": "Test task"})
-  item_id = item.json().get("id") if item.ok else None
-  if item_id:
-    send("PUT", f"/api/tasks/{item_id}", json={"completed": True})
-    send("POST", f"/api/tasks/{item_id}/toggle-complete")
-    send("GET", f"/api/tasks/{item_id}")
+  task_id = item.json().get("id") if item.ok else None
+  if task_id:
+    send("PUT", f"/api/tasks/{task_id}", json={"completed": True})
+    send("POST", f"/api/tasks/{task_id}/if-complete")
+    send("GET", f"/api/tasks/{task_id}")
 
   # Reminder
-  rem_item = send("POST", "/api/tasks", json={"type": "reminder", "title": "Ping"})
-  rem_item_id = rem_item.json().get("id") if rem_item.ok else None
-  if rem_item_id:
-    rem = send("POST", "/api/reminders", json={
-      "itemId": rem_item_id,
-      "scheduledTime": (datetime.now() + timedelta(minutes=30)).isoformat(),
-    })
-    rem_id = rem.json().get("id") if rem.ok else None
-    if rem_id:
-      send("PUT", f"/api/reminders/{rem_id}", json={"sent": True})
-      send("DELETE", f"/api/reminders/{rem_id}")
+  rem = send("POST", "/api/reminders", json={
+    "title": "Ping",
+    "scheduledTime": (datetime.now() + timedelta(minutes=30)).isoformat(),
+  })
+  rem_id = rem.json().get("id") if rem.ok else None
+  if rem_id:
+    send("PUT", f"/api/reminders/{rem_id}", json={"sent": True})
+    send("DELETE", f"/api/reminders/{rem_id}")
 
-  if item_id:
-    send("DELETE", f"/api/tasks/{item_id}")
-  if rem_item_id:
-    send("DELETE", f"/api/tasks/{rem_item_id}")
+  if task_id:
+    send("DELETE", f"/api/tasks/{task_id}")
 
 
 if __name__ == "__main__":

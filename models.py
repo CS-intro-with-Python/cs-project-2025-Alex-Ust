@@ -12,8 +12,8 @@ class Task(db.Model):
     details = db.Column(db.Text, default="")
     deadline = db.Column(db.DateTime)
     completed = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now)
 
     def to_dict(self) -> dict:
         return {
@@ -35,8 +35,8 @@ class Reminder(db.Model):
     details = db.Column(db.Text, default="")
     scheduled_at = db.Column(db.DateTime)
     sent = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now)
 
     def to_dict(self) -> dict:
         return {

@@ -9,16 +9,20 @@
 
 <body>
   <h1 class="violet">U-Note</h1>
+
   <p>Reminders: {{ counts.reminder }} | Tasks: {{ counts.task }}</p>
+
   <p>
-    <a href="{{ url_for('hello', type='all') }}">All</a> |
-    <a href="{{ url_for('hello', type='reminder') }}">Reminders</a> |
-    <a href="{{ url_for('hello', type='task') }}">Tasks</a>
+    <a href="{{ url_for('hello', type='all') }}"> All </a> |
+    <a href="{{ url_for('hello', type='reminder') }}"> Reminders </a> |
+    <a href="{{ url_for('hello', type='task') }}"> Tasks </a>
   </p>
+
   <hr />
 
-  <h2 class="violet">{% if edit_item %}Edit{% else %}New{% endif %}</h2>
-  <form method="POST" action="{% if edit_item %}{{ url_for('update_task_form', item_id=edit_item.id) }}{% else %}{{ url_for('create_task_form') }}{% endif %}">
+  <h2 class="violet"> {% if edit_item %}Edit{% else %}New{% endif %} </h2>
+  
+  <form id="item-form" data-mode="{% if edit_item %}edit{% else %}create{% endif %}" method="POST" action="{% if edit_item and edit_type == 'reminder' %}{{ url_for('update_reminder_form', reminder_id=edit_item.id) }}{% elif edit_item %}{{ url_for('update_task_form', task_id=edit_item.id) }}{% else %}{{ url_for('create_task_form') }}{% endif %}">
     {% if edit_item %}<input type="hidden" name="id" value="{{ edit_item.id }}" />{% endif %}
     <table class="ok">
       <tr>
@@ -43,10 +47,11 @@
       <tr>
         <td></td>
         <td>
-          <button type="submit">{% if edit_item %}Update{% else %}Save{% endif %}</button>
           {% if edit_item %}
+            <button type="submit">Update</button>
             <a href="{{ url_for('hello', type=filter_type) }}">Cancel</a>
           {% else %}
+            <button type="submit">Save</button>
             <button type="reset">Clear</button>
           {% endif %}
         </td>
@@ -73,11 +78,11 @@
       <tr>
         <td class="label">Actions</td>
         <td class="note-actions">
-          <a href="{{ url_for('edit_task_form', item_id=item.id, type=filter_type) }}">Edit</a>
-          <form method="POST" action="{{ url_for('toggle_task_complete_form', item_id=item.id) }}">
+          <a href="{{ url_for('edit_reminder_form', reminder_id=item.id, type=filter_type) }}">Edit</a>
+          <form method="POST" action="{{ url_for('toggle_reminder_complete_form', reminder_id=item.id) }}">
             <button type="submit">{% if item.sent %}Undone{% else %}Done{% endif %}</button>
           </form>
-          <form method="POST" action="{{ url_for('delete_task_form', item_id=item.id) }}"><button type="submit">Delete</button></form>
+          <form method="POST" action="{{ url_for('delete_reminder_form', reminder_id=item.id) }}"><button type="submit">Delete</button></form>
         </td>
       </tr>
     </table>
@@ -85,6 +90,8 @@
   {% else %}
     <p>No reminders.</p>
   {% endfor %}
+
+  <hr />
 
   <h2 class="violet">Tasks</h2>
   {% for item in tasks %}
@@ -104,11 +111,11 @@
       <tr>
         <td class="label">Actions</td>
         <td class="note-actions">
-          <a href="{{ url_for('edit_task_form', item_id=item.id, type=filter_type) }}">Edit</a>
-          <form method="POST" action="{{ url_for('toggle_task_complete_form', item_id=item.id) }}">
+          <a href="{{ url_for('edit_task_form', task_id=item.id, type=filter_type) }}">Edit</a>
+          <form method="POST" action="{{ url_for('toggle_task_complete_form', task_id=item.id) }}">
             <button type="submit">{% if item.completed %}Undone{% else %}Done{% endif %}</button>
           </form>
-          <form method="POST" action="{{ url_for('delete_task_form', item_id=item.id) }}"><button type="submit">Delete</button></form>
+          <form method="POST" action="{{ url_for('delete_task_form', task_id=item.id) }}"><button type="submit">Delete</button></form>
         </td>
       </tr>
     </table>
@@ -116,5 +123,6 @@
   {% else %}
     <p>No tasks.</p>
   {% endfor %}
+
 </body>
 </html>
