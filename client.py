@@ -13,15 +13,15 @@ def main():
 
   send("GET", "/")
 
-  item = send("POST", "/api/items", json={"type": "task", "title": "Test task"})
+  item = send("POST", "/api/tasks", json={"type": "task", "title": "Test task"})
   item_id = item.json().get("id") if item.ok else None
   if item_id:
-    send("PUT", f"/api/items/{item_id}", json={"completed": True})
-    send("POST", f"/api/items/{item_id}/toggle-complete")
-    send("GET", f"/api/items/{item_id}")
+    send("PUT", f"/api/tasks/{item_id}", json={"completed": True})
+    send("POST", f"/api/tasks/{item_id}/toggle-complete")
+    send("GET", f"/api/tasks/{item_id}")
 
   # Reminder
-  rem_item = send("POST", "/api/items", json={"type": "reminder", "title": "Ping"})
+  rem_item = send("POST", "/api/tasks", json={"type": "reminder", "title": "Ping"})
   rem_item_id = rem_item.json().get("id") if rem_item.ok else None
   if rem_item_id:
     rem = send("POST", "/api/reminders", json={
@@ -34,9 +34,9 @@ def main():
       send("DELETE", f"/api/reminders/{rem_id}")
 
   if item_id:
-    send("DELETE", f"/api/items/{item_id}")
+    send("DELETE", f"/api/tasks/{item_id}")
   if rem_item_id:
-    send("DELETE", f"/api/items/{rem_item_id}")
+    send("DELETE", f"/api/tasks/{rem_item_id}")
 
 
 if __name__ == "__main__":

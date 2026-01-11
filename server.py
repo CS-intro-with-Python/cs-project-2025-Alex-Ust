@@ -1,10 +1,10 @@
 import os
 import logging 
 import logger
-import time
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from models import db, Task, Reminder, parse_dt
+import time
 
 app = Flask(__name__)
 
@@ -15,8 +15,6 @@ def load_user():
     logger.info("Incoming request: %s %s from %s", request.method, request.path, client_ip)
     logger.info("Happy new year 2026!")
 
-a = 1
-z = 2*a - 337 
 
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
@@ -55,6 +53,7 @@ def build_reminder(data, existing: Reminder | None = None):
     return reminder
 
 
+#Checking DB connection, for github else client cannot connect to localhost:8080 
 with app.app_context():
     for attempt in range(10):
         try:
@@ -64,6 +63,8 @@ with app.app_context():
             if attempt == 9:
                 raise
             time.sleep(2)
+
+
 
 
 @app.route("/")
@@ -93,8 +94,8 @@ def hello():
     )
 
 
-@app.route("/api/items", methods=["GET"])
-def get_items():
+@app.route("/api/tasks", methods=["GET"])
+def get_tasks():
     query = Task.query
     completed = request.args.get("completed")
 
@@ -103,16 +104,16 @@ def get_items():
     return jsonify([i.to_dict() for i in query.all()])
 
 
-@app.route("/api/items/<int:item_id>", methods=["GET"])
-def get_item(item_id):
+@app.route("/api/tasks/<int:item_id>", methods=["GET"])
+def get_task(item_id):
     item = Task.query.get(item_id)
     if not item:
         return jsonify({"error": "Item not found"}), 404
     return jsonify(item.to_dict())
 
 
-@app.route("/items/create", methods=["POST"])
-def create_item_form():
+@app.route("/tasks/create", methods=["POST"])
+def create_task_form():
     data = request.form
     if not (data.get("title") or "").strip():
         return redirect(url_for("hello") + "?error=Title is required")
@@ -128,8 +129,8 @@ def create_item_form():
     return redirect(url_for("hello"))
 
 
-@app.route("/api/items", methods=["POST"])
-def create_item():
+@app.route("/api/tasks", methods=["POST"])
+def create_task():
     data = request.get_json() or {}
     if not data.get("title"):
         return jsonify({"error": "Title is required"}), 400
@@ -146,8 +147,8 @@ def create_item():
     return jsonify(item.to_dict()), 201
 
 
-@app.route("/api/items/<int:item_id>", methods=["PUT"])
-def update_item(item_id):
+@app.route("/api/tasks/<int:item_id>", methods=["PUT"])
+def update_task(item_id):
     task = Task.query.get(item_id)
     reminder = Reminder.query.get(item_id) if not task else None
     if not task and not reminder:
@@ -162,8 +163,8 @@ def update_item(item_id):
     return jsonify(task.to_dict())
 
 
-@app.route("/api/items/<int:item_id>", methods=["DELETE"])
-def delete_item(item_id):
+@app.route("/api/tasks/<int:item_id>", methods=["DELETE"])
+def delete_task(item_id):
     item = Task.query.get(item_id)
     reminder = Reminder.query.get(item_id) if not item else None
     if not item and not reminder:
@@ -173,8 +174,8 @@ def delete_item(item_id):
     return jsonify({"message": "Item deleted"}), 200
 
 
-@app.route("/items/<int:item_id>/toggle-complete", methods=["POST"])
-def toggle_complete_form(item_id):
+@app.route("/tasks/<int:item_id>/toggle-complete", methods=["POST"])
+def toggle_task_complete_form(item_id):
     task = Task.query.get(item_id)
     reminder = Reminder.query.get(item_id) if not task else None
     if task:
@@ -188,8 +189,8 @@ def toggle_complete_form(item_id):
     return redirect(url_for("hello"))
 
 
-@app.route("/items/<int:item_id>/edit")
-def edit_item_form(item_id):
+@app.route("/tasks/<int:item_id>/edit")
+def edit_task_form(item_id):
     item = Task.query.get(item_id)
     reminder_item = Reminder.query.get(item_id) if not item else None
     if not item and not reminder_item:
@@ -217,8 +218,8 @@ def edit_item_form(item_id):
     )
 
 
-@app.route("/items/<int:item_id>/update", methods=["POST"])
-def update_item_form(item_id):
+@app.route("/tasks/<int:item_id>/update", methods=["POST"])
+def update_task_form(item_id):
     item = Task.query.get(item_id)
     reminder_item = Reminder.query.get(item_id) if not item else None
     if not item and not reminder_item:
@@ -232,8 +233,8 @@ def update_item_form(item_id):
     return redirect(url_for("hello"))
 
 
-@app.route("/items/<int:item_id>/delete", methods=["POST"])
-def delete_item_form(item_id):
+@app.route("/tasks/<int:item_id>/delete", methods=["POST"])
+def delete_task_form(item_id):
     item = Task.query.get(item_id)
     reminder_item = Reminder.query.get(item_id) if not item else None
     if item or reminder_item:
@@ -242,8 +243,8 @@ def delete_item_form(item_id):
     return redirect(url_for("hello"))
 
 
-@app.route("/api/items/<int:item_id>/toggle-complete", methods=["POST"])
-def toggle_complete(item_id):
+@app.route("/api/tasks/<int:item_id>/toggle-complete", methods=["POST"])
+def toggle_task_complete(item_id):
     task = Task.query.get(item_id)
     reminder = Reminder.query.get(item_id) if not task else None
     if not task and not reminder:

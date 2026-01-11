@@ -1,7 +1,6 @@
 body {
     background-color: #ffffff;
-    color: rgb(0, 0, 0);
-    font-family: Arial, sans-serif;
+    color: #000000;
 }
 
 .violet {
@@ -15,13 +14,14 @@ body {
     font-size: 20px;
     font-weight: bold;
 }
+
 .note-title { background: #f2f2f2; }
 .note-body { font-weight: normal; }
 .note-meta { color: #444; }
 .note-actions form { display: inline; }
 .label { width: 120px; }
-.reminder { border-color: #2a6fdb; background: #eef4ff; }
-.task { border-color: #d97706; background: #fff3e0; }
+.reminder { border-color: #0062ff; background: #eef4ff; }
+.task { border-color: #ff0000; background: #fff3e0; }
 .done { border-color: #1a7f37; background: #e7f6ec; }
 
 .search-form {

@@ -6,6 +6,7 @@
   <title>U-Note</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
+
 <body>
   <h1 class="violet">U-Note</h1>
   <p>Reminders: {{ counts.reminder }} | Tasks: {{ counts.task }}</p>
@@ -17,7 +18,7 @@
   <hr />
 
   <h2 class="violet">{% if edit_item %}Edit{% else %}New{% endif %}</h2>
-  <form method="POST" action="{% if edit_item %}{{ url_for('update_item_form', item_id=edit_item.id) }}{% else %}{{ url_for('create_item_form') }}{% endif %}">
+  <form method="POST" action="{% if edit_item %}{{ url_for('update_task_form', item_id=edit_item.id) }}{% else %}{{ url_for('create_task_form') }}{% endif %}">
     {% if edit_item %}<input type="hidden" name="id" value="{{ edit_item.id }}" />{% endif %}
     <table class="ok">
       <tr>
@@ -72,11 +73,11 @@
       <tr>
         <td class="label">Actions</td>
         <td class="note-actions">
-          <a href="{{ url_for('edit_item_form', item_id=item.id, type=filter_type) }}">Edit</a>
-          <form method="POST" action="{{ url_for('toggle_complete_form', item_id=item.id) }}">
+          <a href="{{ url_for('edit_task_form', item_id=item.id, type=filter_type) }}">Edit</a>
+          <form method="POST" action="{{ url_for('toggle_task_complete_form', item_id=item.id) }}">
             <button type="submit">{% if item.sent %}Undone{% else %}Done{% endif %}</button>
           </form>
-          <form method="POST" action="{{ url_for('delete_item_form', item_id=item.id) }}"><button type="submit">Delete</button></form>
+          <form method="POST" action="{{ url_for('delete_task_form', item_id=item.id) }}"><button type="submit">Delete</button></form>
         </td>
       </tr>
     </table>
@@ -103,11 +104,11 @@
       <tr>
         <td class="label">Actions</td>
         <td class="note-actions">
-          <a href="{{ url_for('edit_item_form', item_id=item.id, type=filter_type) }}">Edit</a>
-          <form method="POST" action="{{ url_for('toggle_complete_form', item_id=item.id) }}">
+          <a href="{{ url_for('edit_task_form', item_id=item.id, type=filter_type) }}">Edit</a>
+          <form method="POST" action="{{ url_for('toggle_task_complete_form', item_id=item.id) }}">
             <button type="submit">{% if item.completed %}Undone{% else %}Done{% endif %}</button>
           </form>
-          <form method="POST" action="{{ url_for('delete_item_form', item_id=item.id) }}"><button type="submit">Delete</button></form>
+          <form method="POST" action="{{ url_for('delete_task_form', item_id=item.id) }}"><button type="submit">Delete</button></form>
         </td>
       </tr>
     </table>

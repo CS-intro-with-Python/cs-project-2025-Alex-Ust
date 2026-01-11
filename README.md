@@ -7,21 +7,14 @@
 ## Description
 Simple reminders/tasks board: add items, filter by type, mark done
 
-## Setup
 
-```bash
-pip3 install -r requirements.txt
-docker build -t server .
-docker run --rm -p 8080:8080 -v ${PWD}:/app server
-```
-
-## Docker Compose
+## Setup (Docker Compose)
 
 ```bash
 docker compose up --build
 ```
 
-The app will be available at `http://localhost:8080`
+The app will be running at `http://localhost:8080`
 
 ## Requirements
 
@@ -43,14 +36,16 @@ Frontend:
 - **Reminder**: id, item_id, scheduled_time (optional), sent, created_at
 
 ### Endpoints
-- **Items**: `GET /api/items` (filters: type, completed); `GET /api/items/<id>`; `POST /api/items`; `PUT /api/items/<id>`; `DELETE /api/items/<id>`; `POST /api/items/<id>/toggle-complete`
-- **Reminders**: `GET /api/reminders` (filters: item_id, sent); `GET /api/reminders/<id>`; `POST /api/reminders` (itemId; scheduledTime optional); `PUT /api/reminders/<id>`; `DELETE /api/reminders/<id>`
+- **Tasks**: `GET /api/tasks` (filters: completed); `GET /api/tasks/<id>`; `POST /api/tasks`; `PUT /api/tasks/<id>`; `DELETE /api/tasks/<id>`; `POST /api/tasks/<id>/toggle-complete`
+- **Reminders**: `GET /api/reminders` (filters: item_id, sent); `GET /api/reminders/<id>`; `POST /api/reminders` (scheduledTime optional); `PUT /api/reminders/<id>`; `DELETE /api/reminders/<id>`
 
 
 
 ## Features
 
-- Create reminders or tasks, filter by type, and mark completion
+- Create reminders or tasks
+- Remove reminders and tasks 
+- Edit reminders and tasks 
 
 ## Git
 
