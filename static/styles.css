@@ -4,7 +4,7 @@ body {
 }
 
 .violet {
-    color: rgb(142, 0, 142);
+    color: rgb(81, 7, 81);
 }
 
 .ok {
@@ -15,13 +15,14 @@ body {
     font-weight: bold;
 }
 
-.note-title { background: #f2f2f2; }
-.note-body { font-weight: normal; }
-.note-meta { color: #444; }
+.note-title { color: #3b145f; }
+.note-body { color: #2a2a2a; }
+.note-meta { color: #6c4b6c; }
 .note-actions form { display: inline; }
 .label { width: 120px; }
+
 .reminder { border-color: #0062ff; background: #eef4ff; }
-.task { border-color: #ff0000; background: #fff3e0; }
+.task { border-color: #ff0000; background: #ffe0e0; }
 .done { border-color: #1a7f37; background: #e7f6ec; }
 
 .search-form {
