@@ -9,7 +9,8 @@
 </head>
 
 <body>
-  <h1 class="violet">U-Note</h1>
+  <h1 class="violet">U-Note</h1> 
+  <a class="btn btn-primary" href="{{ url_for('relax') }}">Relax</a>
 
   <p>Reminders: {{ counts.reminder }} | Tasks: {{ counts.task }}</p>
 
@@ -49,11 +50,11 @@
         <td></td>
         <td>
           {% if edit_item %}
-            <button class="btn btn-primary" type="submit">Update</button>
+            <button class="btn btn-outline-success" type="submit">Update</button>
             <a href="{{ url_for('hello', type=filter_type) }}">Cancel</a>
           {% else %}
-            <button class="btn btn-primary" type="submit">Save</button>
-            <button class="btn btn-primary" type="reset">Clear</button>
+            <button class="btn btn-outline-success" type="submit">Save</button>
+            <button class="btn btn-outline-danger" type="reset">Clear</button>
           {% endif %}
         </td>
       </tr>
@@ -81,9 +82,9 @@
         <td class="note-actions">
           <a href="{{ url_for('edit_reminder_form', reminder_id=item.id, type=filter_type) }}">Edit</a>
           <form method="POST" action="{{ url_for('toggle_reminder_complete_form', reminder_id=item.id) }}">
-            <button class="btn btn-primary" type="submit">{% if item.sent %}Undone{% else %}Done{% endif %}</button>
+            <button class="btn btn-outline-success" type="submit">{% if item.sent %}Undone{% else %}Done{% endif %}</button>
           </form>
-          <form method="POST" action="{{ url_for('delete_reminder_form', reminder_id=item.id) }}"><button class="btn btn-primary" type="submit">Delete</button></form>
+          <form method="POST" action="{{ url_for('delete_reminder_form', reminder_id=item.id) }}"><button class="btn btn-outline-danger" type="submit">Delete</button></form>
         </td>
       </tr>
     </table>
@@ -114,9 +115,9 @@
         <td class="note-actions">
           <a href="{{ url_for('edit_task_form', task_id=item.id, type=filter_type) }}">Edit</a>
           <form method="POST" action="{{ url_for('toggle_task_complete_form', task_id=item.id) }}">
-            <button class="btn btn-primary" type="submit">{% if item.completed %}Undone{% else %}Done{% endif %}</button>
+            <button class="btn btn-outline-success" type="submit">{% if item.completed %}Undone{% else %}Done{% endif %}</button>
           </form>
-          <form method="POST" action="{{ url_for('delete_task_form', task_id=item.id) }}"><button class="btn btn-primary" type="submit">Delete</button></form>
+          <form method="POST" action="{{ url_for('delete_task_form', task_id=item.id) }}"><button class="btn btn-outline-danger" type="submit">Delete</button></form>
         </td>
       </tr>
     </table>

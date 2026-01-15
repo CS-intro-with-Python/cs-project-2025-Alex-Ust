@@ -1093,4 +1093,9 @@
 2026-01-10 12:48:18,762 ||| INFO ||| app_logger : Incoming request: GET / from 151.101.0.223
 2026-01-10 12:48:18,762 ||| INFO ||| app_logger : Happy new year 2026!
 2026-01-10 12:48:18,782 ||| INFO ||| app_logger : Incoming request: GET /static/styles.css from 151.101.0.223
-2026-01-10 12:48:18,783 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-10 12:48:18,783 ||| INFO ||| app_logger : Happy new year 2026!2026-01-16 00:25:47,281 ||| INFO ||| app_logger : Incoming request: POST /api/tasks from 127.0.0.1
+2026-01-16 00:25:47,281 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-16 00:25:47,285 ||| INFO ||| app_logger : Incoming request: POST /api/reminders from 127.0.0.1
+2026-01-16 00:25:47,285 ||| INFO ||| app_logger : Happy new year 2026!
+2026-01-16 00:25:47,289 ||| INFO ||| app_logger : Incoming request: PUT /api/tasks/9999 from 127.0.0.1
+2026-01-16 00:25:47,289 ||| INFO ||| app_logger : Happy new year 2026!

@@ -214,7 +214,7 @@ def toggle_task_complete(task_id):
     db.session.commit()
     return jsonify(task.to_dict())
 
-
+#========================================REMINDERS================================================#
 @app.route("/reminders/create", methods=["POST"])
 def create_reminder_form():
     data = request.form
@@ -355,6 +355,13 @@ def toggle_reminder_complete(reminder_id):
     db.session.commit()
     return jsonify(reminder.to_dict())
 
+@app.route("/relax")
+def relax():
+    return render_template("relax.html")
+
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"}), 200
 
 
 

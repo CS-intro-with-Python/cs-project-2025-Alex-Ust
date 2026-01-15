@@ -19,6 +19,9 @@ def main():
     send("PUT", f"/api/tasks/{task_id}", json={"completed": True})
     send("POST", f"/api/tasks/{task_id}/if-complete")
     send("GET", f"/api/tasks/{task_id}")
+  if task_id:
+    send("DELETE", f"/api/tasks/{task_id}")
+
 
   # Reminder
   rem = send("POST", "/api/reminders", json={
@@ -30,8 +33,8 @@ def main():
     send("PUT", f"/api/reminders/{rem_id}", json={"sent": True})
     send("DELETE", f"/api/reminders/{rem_id}")
 
-  if task_id:
-    send("DELETE", f"/api/tasks/{task_id}")
+  
+
 
 
 if __name__ == "__main__":

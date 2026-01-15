@@ -39,6 +39,11 @@ jobs:
       - name: Test Flask endpoints
         run: python3 client.py
 
+      - name: Testing (unt + integration)
+        run: |
+          python3 integration_testing.py
+          python3 unit_testing.py
+
       - name: Cleanup
         if: always()
         run: docker compose down -v
