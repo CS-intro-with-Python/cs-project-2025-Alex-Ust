@@ -41,8 +41,8 @@ jobs:
 
       - name: Testing (unt + integration)
         run: |
-          python3 integration_testing.py
-          python3 unit_testing.py
+          pytest -s integration_testing.py
+          pytest -s unit_testing.py
 
       - name: Cleanup
         if: always()
