@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
+    <div class="border border-2 border-black p-2 rounded">
       <div class="card-header">
         <h2 class="violet h5 mb-0">{% if edit_item %}Edit{% else %}New{% endif %}</h2>
       </div>
@@ -45,11 +45,11 @@
                 <label class="form-check-label">Task</label>
               </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-6">
               <label class="form-label">Title</label>
               <input class="form-control" type="text" name="title" required value="{% if edit_item %}{{ edit_item.title }}{% endif %}" />
             </div>
-            <div class="col-md-6">
+            <div class="col-6">
               <label class="form-label">Date</label>
               <input class="form-control" type="datetime-local" name="datetime" value="{% if edit_item and edit_type == 'reminder' and edit_item.scheduled_at %}{{ edit_item.scheduled_at.strftime('%Y-%m-%dT%H:%M') }}{% elif edit_item and edit_type == 'task' and edit_item.deadline %}{{ edit_item.deadline.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
             </div>
@@ -60,7 +60,7 @@
             <div class="col-12 d-flex align-items-center gap-2">
               {% if edit_item %}
                 <button class="btn btn-outline-success" type="submit">Update</button>
-                <a class="btn btn-link" href="{{ url_for('hello', type=filter_type) }}">Cancel</a>
+                <a class="btn btn-outline-danger" href="{{ url_for('hello', type=filter_type) }}">Cancel</a>
               {% else %}
                 <button class="btn btn-outline-success" type="submit">Save</button>
                 <button class="btn btn-outline-danger" type="reset">Clear</button>
@@ -72,7 +72,7 @@
     </div>
 
     <div class="row g-4">
-      <div class="col-lg-6">
+      <div class="col-lg-6 border-end pe-lg-4">
         <h2 class="violet h4 mb-3">Reminders</h2>
         {% for item in reminders %}
           <div class="ok reminder {% if item.sent %}done{% endif %} rounded-3">
@@ -101,7 +101,7 @@
         {% endfor %}
       </div>
 
-      <div class="col-lg-6">
+      <div class="col-lg-6 ps-lg-4">
         <h2 class="violet h4 mb-3">Tasks</h2>
         {% for item in tasks %}
           <div class="ok task {% if item.completed %}done{% endif %} rounded-3">
@@ -112,7 +112,6 @@
               {% if item.deadline %}
                 {{ item.deadline.strftime('%b %d, %Y %I:%M %p') }}
               {% else %}
-                —
               {% endif %}
             </div>
             <div class="note-actions d-flex flex-wrap gap-2">

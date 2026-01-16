@@ -21,7 +21,7 @@ docker compose up --build
 
 ## Delete docker container
 ```bash
-docker compose down
+docker compose down -v
 ```
 
 The app will be running at `http://localhost:8080`
