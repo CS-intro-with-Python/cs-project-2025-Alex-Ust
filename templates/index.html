@@ -9,122 +9,128 @@
 </head>
 
 <body>
-  <h1 class="violet">U-Note</h1> 
-  <a class="btn btn-primary" href="{{ url_for('relax') }}">Relax</a>
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+      <div>
+        <h1 class="violet mb-1">U-Note</h1>
+        <div class="text-muted">Reminders: {{ counts.reminder }} | Tasks: {{ counts.task }}</div>
+      </div>
+      <a class="btn btn-primary" href="{{ url_for('relax') }}">Button if you are tierd</a>
+    </div>
 
-  <p>Reminders: {{ counts.reminder }} | Tasks: {{ counts.task }}</p>
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+      <div class="btn-group" role="group" aria-label="Filter">
+        <a class="btn btn-outline-success {% if filter_type == 'all' %}active{% endif %}" href="{{ url_for('hello', type='all') }}">All</a>
+        <a class="btn btn-outline-primary {% if filter_type == 'reminder' %}active{% endif %}" href="{{ url_for('hello', type='reminder') }}">Reminders</a>
+        <a class="btn btn-outline-danger {% if filter_type == 'task' %}active{% endif %}" href="{{ url_for('hello', type='task') }}">Tasks</a>
+      </div>
+    </div>
 
-  <p>
-    <a href="{{ url_for('hello', type='all') }}"> All </a> |
-    <a href="{{ url_for('hello', type='reminder') }}" class="link-success link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"> Reminders </a> |
-    <a href="{{ url_for('hello', type='task') }}" class="link-danger link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"> Tasks </a>
-  </p>
+    <div class="card shadow-sm mb-4">
+      <div class="card-header">
+        <h2 class="violet h5 mb-0">{% if edit_item %}Edit{% else %}New{% endif %}</h2>
+      </div>
+      <div class="card-body">
+        <form id="item-form" data-mode="{% if edit_item %}edit{% else %}create{% endif %}" method="POST" action="{% if edit_item and edit_type == 'reminder' %}{{ url_for('update_reminder_form', reminder_id=edit_item.id) }}{% elif edit_item %}{{ url_for('update_task_form', task_id=edit_item.id) }}{% else %}{{ url_for('create_task_form') }}{% endif %}">
+          {% if edit_item %}<input type="hidden" name="id" value="{{ edit_item.id }}" />{% endif %}
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="form-label">Type</div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="type" value="reminder" {% if not edit_item or edit_type == "reminder" %}checked{% endif %} />
+                <label class="form-check-label">Reminder</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="type" value="task" {% if edit_item and edit_type == "task" %}checked{% endif %} />
+                <label class="form-check-label">Task</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Title</label>
+              <input class="form-control" type="text" name="title" required value="{% if edit_item %}{{ edit_item.title }}{% endif %}" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date</label>
+              <input class="form-control" type="datetime-local" name="datetime" value="{% if edit_item and edit_type == 'reminder' and edit_item.scheduled_at %}{{ edit_item.scheduled_at.strftime('%Y-%m-%dT%H:%M') }}{% elif edit_item and edit_type == 'task' and edit_item.deadline %}{{ edit_item.deadline.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Details</label>
+              <textarea class="form-control" name="details" rows="3">{% if edit_item %}{{ edit_item.details }}{% endif %}</textarea>
+            </div>
+            <div class="col-12 d-flex align-items-center gap-2">
+              {% if edit_item %}
+                <button class="btn btn-outline-success" type="submit">Update</button>
+                <a class="btn btn-link" href="{{ url_for('hello', type=filter_type) }}">Cancel</a>
+              {% else %}
+                <button class="btn btn-outline-success" type="submit">Save</button>
+                <button class="btn btn-outline-danger" type="reset">Clear</button>
+              {% endif %}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
 
-  <hr />
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <h2 class="violet h4 mb-3">Reminders</h2>
+        {% for item in reminders %}
+          <div class="ok reminder {% if item.sent %}done{% endif %} rounded-3">
+            <div class="note-title h5 mb-2">{{ item.title }}</div>
+            <div class="note-body mb-2">{{ item.details or 'No details' }}</div>
+            <div class="note-meta mb-3">
+              <strong>When:</strong>
+              {% if item.scheduled_at %}
+                {{ item.scheduled_at.strftime('%b %d, %Y %I:%M %p') }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+            <div class="note-actions d-flex flex-wrap gap-2">
+              <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('edit_reminder_form', reminder_id=item.id, type=filter_type) }}">Edit</a>
+              <form method="POST" action="{{ url_for('toggle_reminder_complete_form', reminder_id=item.id) }}">
+                <button class="btn btn-sm btn-outline-success" type="submit">{% if item.sent %}Undone{% else %}Done{% endif %}</button>
+              </form>
+              <form method="POST" action="{{ url_for('delete_reminder_form', reminder_id=item.id) }}">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted">No reminders.</p>
+        {% endfor %}
+      </div>
 
-  <h2 class="violet"> {% if edit_item %}Edit{% else %}New{% endif %} </h2>
-  
-  <form id="item-form" data-mode="{% if edit_item %}edit{% else %}create{% endif %}" method="POST" action="{% if edit_item and edit_type == 'reminder' %}{{ url_for('update_reminder_form', reminder_id=edit_item.id) }}{% elif edit_item %}{{ url_for('update_task_form', task_id=edit_item.id) }}{% else %}{{ url_for('create_task_form') }}{% endif %}">
-    {% if edit_item %}<input type="hidden" name="id" value="{{ edit_item.id }}" />{% endif %}
-    <table class="ok">
-      <tr>
-        <td>Type</td>
-        <td>
-          <label><input type="radio" name="type" value="reminder" {% if not edit_item or edit_type == "reminder" %}checked{% endif %} /> Reminder</label>
-          <label><input type="radio" name="type" value="task" {% if edit_item and edit_type == "task" %}checked{% endif %} /> Task</label>
-        </td>
-      </tr>
-      <tr>
-        <td>Title</td>
-        <td><input type="text" name="title" required value="{% if edit_item %}{{ edit_item.title }}{% endif %}" /></td>
-      </tr>
-      <tr>
-        <td>Details</td>
-        <td><textarea name="details" rows="3">{% if edit_item %}{{ edit_item.details }}{% endif %}</textarea></td>
-      </tr>
-      <tr>
-        <td>Date</td>
-        <td><input type="datetime-local" name="datetime" value="{% if edit_item and edit_type == 'reminder' and edit_item.scheduled_at %}{{ edit_item.scheduled_at.strftime('%Y-%m-%dT%H:%M') }}{% elif edit_item and edit_type == 'task' and edit_item.deadline %}{{ edit_item.deadline.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" /></td>
-      </tr>
-      <tr>
-        <td></td>
-        <td>
-          {% if edit_item %}
-            <button class="btn btn-outline-success" type="submit">Update</button>
-            <a href="{{ url_for('hello', type=filter_type) }}">Cancel</a>
-          {% else %}
-            <button class="btn btn-outline-success" type="submit">Save</button>
-            <button class="btn btn-outline-danger" type="reset">Clear</button>
-          {% endif %}
-        </td>
-      </tr>
-    </table>
-  </form>
-  <hr />
-
-  <h2 class="violet">Reminders</h2>
-  {% for item in reminders %}
-    <table class="ok reminder {% if item.sent %}done{% endif %}">
-      <tr><th colspan="2" class="note-title">{{ item.title }}</th></tr>
-      <tr><td class="label">Details</td><td class="note-body">{{ item.details or 'No details' }}</td></tr>
-      <tr>
-        <td class="label">When</td>
-        <td class="note-meta">
-          {% if item.scheduled_at %}
-            {{ item.scheduled_at.strftime('%b %d, %Y %I:%M %p') }}
-          {% else %}
-            —
-          {% endif %}
-        </td>
-      </tr>
-      <tr>
-        <td class="label">Actions</td>
-        <td class="note-actions">
-          <a href="{{ url_for('edit_reminder_form', reminder_id=item.id, type=filter_type) }}">Edit</a>
-          <form method="POST" action="{{ url_for('toggle_reminder_complete_form', reminder_id=item.id) }}">
-            <button class="btn btn-outline-success" type="submit">{% if item.sent %}Undone{% else %}Done{% endif %}</button>
-          </form>
-          <form method="POST" action="{{ url_for('delete_reminder_form', reminder_id=item.id) }}"><button class="btn btn-outline-danger" type="submit">Delete</button></form>
-        </td>
-      </tr>
-    </table>
-    <br />
-  {% else %}
-    <p>No reminders.</p>
-  {% endfor %}
-
-  <hr />
-
-  <h2 class="violet">Tasks</h2>
-  {% for item in tasks %}
-    <table class="ok task {% if item.completed %}done{% endif %}">
-      <tr><th colspan="2" class="note-title">{{ item.title }}</th></tr>
-      <tr><td class="label">Details</td><td class="note-body">{{ item.details or 'No details' }}</td></tr>
-      <tr>
-        <td class="label">When</td>
-        <td class="note-meta">
-          {% if item.deadline %}
-            {{ item.deadline.strftime('%b %d, %Y %I:%M %p') }}
-          {% else %}
-            —
-          {% endif %}
-        </td>
-      </tr>
-      <tr>
-        <td class="label">Actions</td>
-        <td class="note-actions">
-          <a href="{{ url_for('edit_task_form', task_id=item.id, type=filter_type) }}">Edit</a>
-          <form method="POST" action="{{ url_for('toggle_task_complete_form', task_id=item.id) }}">
-            <button class="btn btn-outline-success" type="submit">{% if item.completed %}Undone{% else %}Done{% endif %}</button>
-          </form>
-          <form method="POST" action="{{ url_for('delete_task_form', task_id=item.id) }}"><button class="btn btn-outline-danger" type="submit">Delete</button></form>
-        </td>
-      </tr>
-    </table>
-    <br />
-  {% else %}
-    <p>No tasks.</p>
-  {% endfor %}
+      <div class="col-lg-6">
+        <h2 class="violet h4 mb-3">Tasks</h2>
+        {% for item in tasks %}
+          <div class="ok task {% if item.completed %}done{% endif %} rounded-3">
+            <div class="note-title h5 mb-2">{{ item.title }}</div>
+            <div class="note-body mb-2">{{ item.details or 'No details' }}</div>
+            <div class="note-meta mb-3">
+              <strong>When:</strong>
+              {% if item.deadline %}
+                {{ item.deadline.strftime('%b %d, %Y %I:%M %p') }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+            <div class="note-actions d-flex flex-wrap gap-2">
+              <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('edit_task_form', task_id=item.id, type=filter_type) }}">Edit</a>
+              <form method="POST" action="{{ url_for('toggle_task_complete_form', task_id=item.id) }}">
+                <button class="btn btn-sm btn-outline-success" type="submit">{% if item.completed %}Undone{% else %}Done{% endif %}</button>
+              </form>
+              <form method="POST" action="{{ url_for('delete_task_form', task_id=item.id) }}">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted">No tasks.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -308,7 +308,7 @@ def create_reminder():
     reminder = Reminder(
         title=data["title"],
         details=data.get("details", ""),
-        scheduled_time=parse_dt(data.get("scheduledTime")),
+        scheduled_at=parse_dt(data.get("scheduledTime")),
         sent=bool(data.get("sent", False)),
     )
     db.session.add(reminder)
@@ -327,7 +327,7 @@ def update_reminder(reminder_id):
     if "details" in data:
         reminder.details = data.get("details", "")
     if "scheduledTime" in data:
-        reminder.scheduled_time = parse_dt(data.get("scheduledTime"))
+        reminder.scheduled_at = parse_dt(data.get("scheduledTime"))
     if "sent" in data:
         reminder.sent = bool(data["sent"])
     reminder.updated_at = datetime.now()

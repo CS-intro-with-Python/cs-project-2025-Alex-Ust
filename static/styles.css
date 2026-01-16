@@ -4,7 +4,7 @@ body {
 }
 
 .violet {
-    color: rgb(81, 7, 81);
+    color: rgb(167, 26, 167);
 }
 
 .ok {
@@ -21,8 +21,8 @@ body {
 .note-actions form { display: inline; }
 .label { width: 120px; }
 
-.reminder { border-color: #0062ff; background: #eef4ff; }
-.task { border-color: #ff0000; background: #ffe0e0; }
+.reminder { border-color: #1f6feb; background: #e9f1ff; }
+.task { border-color: #dc3545; background: #ffe5e7; }
 .done { border-color: #1a7f37; background: #e7f6ec; }
 
 .search-form {

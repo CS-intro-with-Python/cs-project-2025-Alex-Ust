@@ -20,7 +20,7 @@ CREATE DATABASE items_storage;
 
 
 
--- tasks (все задачи)
+-- tasks
 CREATE TABLE tasks (
   id              SERIAL PRIMARY KEY,
   title           VARCHAR(255) NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE tasks (
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- reminders (отдельные напоминания)
+-- reminders
 CREATE TABLE reminders (
   id              SERIAL PRIMARY KEY,
   title           VARCHAR(255) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE reminders (
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- tags (справочник тегов, если нужен)
+-- tags
 CREATE TABLE tags (
   name        VARCHAR(100) PRIMARY KEY,
   created_at  TIMESTAMPTZ DEFAULT NOW()
