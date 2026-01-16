@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <div class="border border-2 border-black p-2 rounded">
+    <div class="border border-2 border-black rounded p-2">
       <div class="card-header">
         <h2 class="violet h5 mb-0">{% if edit_item %}Edit{% else %}New{% endif %}</h2>
       </div>
@@ -72,7 +72,7 @@
     </div>
 
     <div class="row g-4">
-      <div class="col-lg-6 border-end pe-lg-4">
+      <div class="col-lg-6 border-end border-2 border-black pe-lg-4 p-2">
         <h2 class="violet h4 mb-3">Reminders</h2>
         {% for item in reminders %}
           <div class="ok reminder {% if item.sent %}done{% endif %} rounded-3">
@@ -101,7 +101,7 @@
         {% endfor %}
       </div>
 
-      <div class="col-lg-6 ps-lg-4">
+      <div class="col-lg-6 ps-lg-4 p-2">
         <h2 class="violet h4 mb-3">Tasks</h2>
         {% for item in tasks %}
           <div class="ok task {% if item.completed %}done{% endif %} rounded-3">

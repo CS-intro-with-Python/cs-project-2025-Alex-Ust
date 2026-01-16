@@ -26,6 +26,19 @@ docker compose down -v
 
 The app will be running at `http://localhost:8080`
 
+## Makefile shortcuts
+
+```bash
+make install           # install Python deps
+make run               # run server (requires DATABASE_URL)
+make client            # run client script
+make test              # run unit + integration tests
+make test-unit         # run unit tests
+make test-integration  # run integration tests
+make docker-up         # start Docker Compose
+make docker-down       # stop Docker Compose and remove volumes
+```
+
 ## Local Run (without Docker)
 
 1) Install deps:
